@@ -1,5 +1,7 @@
 import os
 import re
+from pathlib import Path
+from fnmatch import fnmatch
 
 def generate_sm_variants():
     # Something else may need the previous working directory, so store it now to reset it later.
@@ -54,9 +56,38 @@ def generate_sm_variants():
 
     os.chdir(original_wd)
 
+def generate_root_zscript_files():
+    # Something else may need the previous working directory, so store it now to reset it later.
+    original_wd = os.getcwd()
+
+    os.chdir(os.path.dirname(__file__) + "/../")
+
+    # Gather all file paths.
+    paths = []
+    for path, subdirs, files in os.walk("MBaseLib/"):
+        for name in files:
+            if fnmatch(name, "*.zs"):
+                relative_path = Path(*Path(path, name).parts[1:])
+                if relative_path.name != "zscript.zs":
+                    paths.append(relative_path.as_posix())
+
+    # TODO: Generational file sorting.
+
+    with open("MBaseLib/zscript.zs", "w") as f:
+        f.write("version \"4.8.2\"\n\n")
+        for path in paths:
+            f.write("#include \"{0}\"\n".format(path))
+        pass
+
+    os.chdir(original_wd)
+
 def main():
     print("Generating statemachines.zs variants...")
     generate_sm_variants()
+    print("Done!")
+
+    print("Generating root zscript files...")
+    generate_root_zscript_files()
     print("Done!")
 
     print("All tasks complete.")
