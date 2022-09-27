@@ -17,8 +17,32 @@ Then include the main ZScript file from the library.
 ```c
 #include "MBaseLib/zscript.zs"
 ```
-This file will `#include` all other ZScript files contained in the library. Be sure
-to place this directive above any `#include`s that may extend classes from MBase.
+This file will `#include` all other ZScript files contained in the library. However,
+GZDoom's preprocessor will include these after all other includes in the same file.
+Includes that contain extensions to or classes deriving from types defined in MBase
+will need to be included from an additional file after the MBaseLib include, like so:
+```c
+// zscript.zs
+
+#include "MBaseLib/zscript.zs"
+
+#include "zscript/several.zs"
+#include "zscript/other.zs"
+#include "zscript/scripts.zs"
+
+#include "zscript2.zs"
+```
+```c
+// zscript2.zs
+
+#include "zscript/things.zs"
+#include "zscript/that.zs"
+#include "zscript/extend.zs"
+#include "zscript/types.zs"
+#include "zscript/from.zs"
+#include "zscript/mbaselib.zs"
+
+```
 
 ### Miscellaneous Edits
 
