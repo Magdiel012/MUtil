@@ -7,8 +7,7 @@
 └──────────────────────────────────────────────────────────────────────────────┘
 */
 
-
-class SMTransitionUI
+class SMTransitionUI ui
 {
 	private name m_EventId;
 	private bool m_EventIdSet;
@@ -91,7 +90,7 @@ class SMTransitionUI
 		return self;
 	}
 }
-class SMStateUI
+class SMStateUI ui
 {
 	protected SMStateUI m_Parent;
 	protected SMMachineUI m_Machine;
@@ -494,7 +493,7 @@ class SMStateUI
 		return m_Machine.IsBuilding();
 	}
 }
-class SMMachineUI : SMStateUI abstract
+class SMMachineUI ui : SMStateUI abstract
 {
 	
 	Object m_Data;

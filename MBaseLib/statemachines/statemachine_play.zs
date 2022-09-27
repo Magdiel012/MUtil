@@ -7,8 +7,7 @@
 └──────────────────────────────────────────────────────────────────────────────┘
 */
 
-
-class SMTransitionPlay
+class SMTransitionPlay play
 {
 	private name m_EventId;
 	private bool m_EventIdSet;
@@ -91,7 +90,7 @@ class SMTransitionPlay
 		return self;
 	}
 }
-class SMStatePlay
+class SMStatePlay play
 {
 	protected SMStatePlay m_Parent;
 	protected SMMachinePlay m_Machine;
@@ -494,7 +493,7 @@ class SMStatePlay
 		return m_Machine.IsBuilding();
 	}
 }
-class SMMachinePlay : SMStatePlay abstract
+class SMMachinePlay play : SMStatePlay abstract
 {
 	
 	Object m_Data;
