@@ -25,6 +25,9 @@ def generate_sm_variants():
     gen_text = re.sub("SMState", "SMStatePlay", gen_text)
     gen_text = re.sub("SMMachine", "SMMachinePlay", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionPlay", gen_text)
+    gen_text = re.sub("class SMStatePlay", "class SMStatePlay play", gen_text, 1)
+    gen_text = re.sub("class SMMachinePlay", "class SMMachinePlay play", gen_text, 1)
+    gen_text = re.sub("class SMTransitionPlay", "class SMTransitionPlay play", gen_text, 1)
 
     with open("../MBaseLib/statemachines/statemachine_play.zs", "w", encoding="utf-8") as f:
         f.write(gen_text)
@@ -42,6 +45,9 @@ def generate_sm_variants():
     gen_text = re.sub("SMState", "SMStateUI", gen_text)
     gen_text = re.sub("SMMachine", "SMMachineUI", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionUI", gen_text)
+    gen_text = re.sub("class SMStateUI", "class SMStateUI ui", gen_text, 1)
+    gen_text = re.sub("class SMMachineUI", "class SMMachineUI ui", gen_text, 1)
+    gen_text = re.sub("class SMTransitionUI", "class SMTransitionUI ui", gen_text, 1)
 
     with open("../MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8") as f:
         f.write(gen_text)
