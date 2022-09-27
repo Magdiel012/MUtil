@@ -5,9 +5,9 @@ def generate_sm_variants():
     # Something else may need the previous working directory, so store it now to reset it later.
     original_wd = os.getcwd()
 
-    os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.dirname(__file__) + "/../")
 
-    with open("../MBaseLib/statemachines/statemachine.zs", encoding="utf-8") as f:
+    with open("MBaseLib/statemachines/statemachine.zs", encoding="utf-8") as f:
         # Remove all comments and excess newlines.
         base_text = re.sub("\/\/(?![\S]{2,}\.[\w]).*|\/\*(.|\n)+?\*\/", "", f.read())
         base_text = re.sub("\n{2,}|\n\s{2,}\n", "\n", base_text)
@@ -29,7 +29,7 @@ def generate_sm_variants():
     gen_text = re.sub("class SMMachinePlay", "class SMMachinePlay play", gen_text, 1)
     gen_text = re.sub("class SMTransitionPlay", "class SMTransitionPlay play", gen_text, 1)
 
-    with open("../MBaseLib/statemachines/statemachine_play.zs", "w", encoding="utf-8") as f:
+    with open("MBaseLib/statemachines/statemachine_play.zs", "w", encoding="utf-8") as f:
         f.write(gen_text)
 
     # Generate statemachine_ui.zs.
@@ -49,9 +49,9 @@ def generate_sm_variants():
     gen_text = re.sub("class SMMachineUI", "class SMMachineUI ui", gen_text, 1)
     gen_text = re.sub("class SMTransitionUI", "class SMTransitionUI ui", gen_text, 1)
 
-    with open("../MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8") as f:
+    with open("MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8") as f:
         f.write(gen_text)
-    
+
     os.chdir(original_wd)
 
 def main():
