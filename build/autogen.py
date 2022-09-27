@@ -7,9 +7,10 @@ def generate_sm_variants():
 
     os.chdir(os.path.dirname(__file__))
 
-    base_text = re.sub("\/\/(?![\S]{2,}\.[\w]).*|\/\*(.|\n)+?\*\/", "", f.read())
-    base_text = re.sub("\n{2,}|\n\s{2,}\n", "\n", base_text)
-    f.close()
+    with open("../MBaseLib/statemachines/statemachine.zs", encoding="utf-8") as f:
+        # Remove all comments and excess newlines.
+        base_text = re.sub("\/\/(?![\S]{2,}\.[\w]).*|\/\*(.|\n)+?\*\/", "", f.read())
+        base_text = re.sub("\n{2,}|\n\s{2,}\n", "\n", base_text)
 
     # Generate statemachine_play.zs.
     play_message = """/*
@@ -23,9 +24,8 @@ def generate_sm_variants():
     gen_text = re.sub("SMMachine", "SMMachinePlay", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionPlay", gen_text)
 
-    f = open("../MBaseLib/statemachines/statemachine_play.zs", "w", encoding="utf-8")
-    f.write(gen_text)
-    f.close()
+    with open("../MBaseLib/statemachines/statemachine_play.zs", "w", encoding="utf-8") as f:
+        f.write(gen_text)
 
     # Generate statemachine_.zs.
     ui_message = """/*
@@ -40,8 +40,8 @@ def generate_sm_variants():
     gen_text = re.sub("SMMachine", "SMMachineUI", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionUI", gen_text)
 
-    f = open("../MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8")
-    f.write(gen_text)
+    with open("../MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8") as f:
+        f.write(gen_text)
     
     os.chdir(original_wd)
 
