@@ -7,6 +7,9 @@ class WeaponBase : DoomWeapon abstract
 	const SAIM_NEVERFRIENDS = 2;
 	const SAIM_ONLYMONSTERS = 3;
 
+	// Conversion factors.
+	const SPAWN_OFFSET_DEPTH_FACTOR = 0.00805528;
+
 	meta class<HUDExtension> m_HUDExtensionType;
 	property HUDExtensionType: m_HUDExtensionType;
 
@@ -410,7 +413,7 @@ class WeaponBase : DoomWeapon abstract
 
 		if (followPSpriteOffset)
 		{
-			let factor = 0.00805528 * spawnOffset.z;
+			let factor = SPAWN_OFFSET_DEPTH_FACTOR * spawnOffset.z;
 			let offsetX = m_PSpritePosition.GetX() - m_PSpritePosition.GetBaseX();
 			let offsetY = m_PSpritePosition.GetY() - m_PSpritePosition.GetBaseY();
 			spawnOffset.x += abs(offsetX) * factor * Math.Sign(offsetX);
