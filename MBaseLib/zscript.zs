@@ -1,22 +1,17 @@
-// General
-#include "./general/math.zs"
-#include "./general/vectorutil.zs"
-#include "./general/screenutil.zs"
-#include "./general/actorutil.zs"
-#include "./general/interpolatedvalues.zs"
-#include "./general/pspritetransform.zs"
-#include "./general/buttoneventqueue.zs"
-#include "./general/modifiablevalues.zs"
-#include "./general/bakedcurves.zs"
+version "4.8.2"
 
-// State Machines
-#include "./statemachines/statemachine.zs"
-#include "./statemachines/statemachine_play.zs"
-#include "./statemachines/statemachine_ui.zs"
-
-// UI
-#include "./ui/hudextensions.zs"
-#include "./ui/hudextensionregistry.zs"
-
-// Weapons
-#include "./weapons/weaponbase.zs"
+#include "general/actorutil.zs"
+#include "general/bakedcurves.zs"
+#include "general/buttoneventqueue.zs"
+#include "general/interpolatedvalues.zs"
+#include "general/math.zs"
+#include "general/modifiablevalues.zs"
+#include "general/pspritetransform.zs"
+#include "general/screenutil.zs"
+#include "general/vectorutil.zs"
+#include "statemachines/statemachine.zs"
+#include "statemachines/statemachine_play.zs"
+#include "statemachines/statemachine_ui.zs"
+#include "ui/hudextensionregistry.zs"
+#include "ui/hudextensions.zs"
+#include "weapons/weaponbase.zs"
