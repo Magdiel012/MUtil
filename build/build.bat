@@ -1,0 +1,1 @@
+python D:/Magdiel_Alejandro/GZD/SLADE/proj/MBase/build/autogen.py
