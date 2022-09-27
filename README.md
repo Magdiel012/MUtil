@@ -19,7 +19,7 @@ Then include the main ZScript file from the library.
 ```
 This file will `#include` all other ZScript files contained in the library. However,
 GZDoom's preprocessor will include these after all other includes in the same file.
-Includes that contain extensions to or classes deriving from types defined in MBase
+`#include`s that contain extensions to or classes deriving from types defined in MBase
 will need to be included from an additional file after the MBaseLib include, like so:
 ```c
 // zscript.zs
