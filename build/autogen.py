@@ -1,7 +1,12 @@
+import os
 import re
 
 def generate_sm_variants():
-    f = open("../MBaseLib/statemachines/statemachine.zs", encoding="utf-8")
+    # Something else may need the previous working directory, so store it now to reset it later.
+    original_wd = os.getcwd()
+
+    os.chdir(os.path.dirname(__file__))
+
     base_text = re.sub("\/\/(?![\S]{2,}\.[\w]).*|\/\*(.|\n)+?\*\/", "", f.read())
     base_text = re.sub("\n{2,}|\n\s{2,}\n", "\n", base_text)
     f.close()
@@ -37,7 +42,8 @@ def generate_sm_variants():
 
     f = open("../MBaseLib/statemachines/statemachine_ui.zs", "w", encoding="utf-8")
     f.write(gen_text)
-    f.close()
+    
+    os.chdir(original_wd)
 
 def main():
     print("Generating statemachines.zs variants...")
