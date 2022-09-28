@@ -148,6 +148,30 @@ struct MathF
 
 struct MathVec2
 {
+	static vector2 Clamp(vector2 vector, double minLength, double maxLength)
+	{
+		if (minLength < 0.0) minLength = 0.0;
+
+		double length = vector.Length();
+		double targetLength = length;
+
+		if (length < minLength)
+		{
+			targetLength = minLength;
+		}
+		else if (length > maxLength)
+		{
+			targetLength = maxLength;
+		}
+
+		if (targetLength == length)
+		{
+			return vector;
+		}
+
+		return vector = (vector.x * (targetLength / length), vector.y * (targetLength / length));
+	}
+
 	static vector2 Rotate(vector2 vector, double angle)
 	{
 		return (vector.x * cos(angle) - vector.y * sin(angle), vector.x * sin(angle) + vector.y * cos(angle));
@@ -217,6 +241,28 @@ struct MathVec2
 
 struct MathVec3
 {
+	static vector3 Clamp(vector3 vector, double minLength, double maxLength)
+	{
+		double length = vector.Length();
+		double targetLength = length;
+
+		if (length < minLength)
+		{
+			targetLength = minLength;
+		}
+		else if (length > maxLength)
+		{
+			targetLength = maxLength;
+		}
+
+		if (targetLength == length)
+		{
+			return vector;
+		}
+
+		return vector = (vector.x * (targetLength / length), vector.y * (targetLength / length), vector.z * (targetLength / length));
+	}
+
 	static vector3 Rotate(vector3 vector, vector3 axis, double angle)
 	{
 		vector3 a = axis cross vector;
