@@ -24,6 +24,8 @@ def generate_sm_variants():
 */
 """
     gen_text = "// AUTO-GENERATED\n" + play_message + base_text
+    gen_text = re.sub("class SMState", "class SMState play", gen_text, 1)
+    gen_text = re.sub("class SMTransition", "class SMTransition play", gen_text, 1)
     gen_text = re.sub("SMState", "SMStatePlay", gen_text)
     gen_text = re.sub("SMMachine", "SMMachinePlay", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionPlay", gen_text)
@@ -44,6 +46,8 @@ def generate_sm_variants():
 */
 """
     gen_text = "// AUTO-GENERATED\n" + ui_message + base_text
+    gen_text = re.sub("class SMState", "class SMState ui", gen_text, 1)
+    gen_text = re.sub("class SMTransition", "class SMTransition ui", gen_text, 1)
     gen_text = re.sub("SMState", "SMStateUI", gen_text)
     gen_text = re.sub("SMMachine", "SMMachineUI", gen_text)
     gen_text = re.sub("SMTransition", "SMTransitionUI", gen_text)
