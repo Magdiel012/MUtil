@@ -74,7 +74,6 @@ def generate_root_zscript_files():
     # TODO: Generational file sorting.
 
     with open("MBaseLib/zscript.zs", "w") as f:
-        f.write("version \"4.8.2\"\n\n")
         for path in paths:
             f.write("#include \"{0}\"\n".format(path))
         pass
