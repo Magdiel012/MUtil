@@ -10,6 +10,10 @@ class WeaponBase : DoomWeapon abstract
 	// Conversion factors.
 	const SPAWN_OFFSET_DEPTH_FACTOR = 0.00805528;
 
+	// Extents.
+	const MAX_FORWARD_MOVE = 12800;
+	const MAX_SIDE_MOVE = 10240;
+
 	meta class<HUDExtension> m_HUDExtensionType;
 	property HUDExtensionType: m_HUDExtensionType;
 
@@ -182,7 +186,7 @@ class WeaponBase : DoomWeapon abstract
 
 		m_PSpritePosition = new("ModifiableVector2");
 		m_PSpriteScale = new("ModifiableVector2");
-		m_PSpritePosition.SetBaseValue((owner.Player.GetPSprite(PSP_WEAPON).x, WEAPONBOTTOM));
+		m_PSpritePosition.SetBaseValue((0.0, WEAPONBOTTOM));
 		m_PSpriteScale.SetBaseValue((1.0, 1.0));
 
 		m_WeaponRecoilSwayer = new("WeaponSwayer");
@@ -600,6 +604,17 @@ class WeaponBase : DoomWeapon abstract
 	// TODO: Use input weight to adjust bobbing.
 	private void WeaponBob()
 	{
+		double normalizedForwardMove = Math.Remap(
+			owner.player.mo.GetPlayerInput(MODINPUT_FORWARDMOVE),
+				-MAX_FORWARD_MOVE, MAX_FORWARD_MOVE,
+				-1.0, 1.0);
+		double normalizedSideMove = Math.Remap(
+			owner.player.mo.GetPlayerInput(MODINPUT_SIDEMOVE),
+				-MAX_SIDE_MOVE, MAX_SIDE_MOVE,
+				-1.0, 1.0);
+		
+		double moveInputStrength = MathVec2.Clamp((normalizedForwardMove, normalizedSideMove), -1.0, 1.0).Length();
+
 		double previousMovementSpeed = (m_PreviousPlayerVel.x, m_PreviousPlayerVel.y).Length();
 		double movementSpeed = (owner.Vel.x, owner.Vel.y).Length();
 		double maxSpeed =
@@ -609,7 +624,7 @@ class WeaponBase : DoomWeapon abstract
 
 		double speedPercentage = movementSpeed / maxSpeed;
 
-		m_BobAmplitude.m_Target = m_BobIntensity * owner.Player.GetMoveBob() * min(1.0, speedPercentage);
+		m_BobAmplitude.m_Target = m_BobIntensity * owner.Player.GetMoveBob() * min(1.0, min(moveInputStrength, speedPercentage));
 		m_BobAmplitude.m_SmoothTime = previousMovementSpeed < movementSpeed
 			? m_BobIntensityResponseTime * 0.7
 			: m_BobIntensityResponseTime; // TODO: Make these properties.
