@@ -12,7 +12,7 @@ def generate_sm_variants():
     with open("MBaseLib/statemachines/statemachine.zs", encoding="utf-8") as f:
         # Remove all comments and excess newlines.
         base_text = re.sub("\/\/(?![\S]{2,}\.[\w]).*|\/\*(.|\n)+?\*\/", "", f.read())
-        base_text = re.sub("\n{2,}|\n\s{2,}\n", "\n", base_text)
+        base_text = re.sub("\n{2,}|\n\s+\n", "\n", base_text)
 
     # Generate statemachine_play.zs.
     play_message = """
