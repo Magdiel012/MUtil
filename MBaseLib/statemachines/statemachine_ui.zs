@@ -150,7 +150,6 @@ class SMStateUI ui
 		return null;
 	}
 	
-	
 	SMTransitionUI GetTransition(name eventId, class<SMStateUI> from) const
 	{
 		if (eventId == 'None' && from == null) return null;
@@ -235,7 +234,6 @@ class SMStateUI ui
 		return null;
 	}
 	
-	
 	SMStateUI AddTransition(SMTransitionUI newTransition)
 	{
 		if (newTransition.GetEventID() == 'None' && newTransition.GetFrom() == null)
@@ -270,7 +268,6 @@ class SMStateUI ui
 		m_Transitions.Push(newTransition);
 		return self;
 	}
-	
 	
 	SMStateUI RemoveTransition(name eventId, class<SMStateUI> from)
 	{
@@ -327,7 +324,6 @@ class SMStateUI ui
 		return RemoveTransition(eventId, null);
 	}
 	
-	
 	protected SMStateUI SetDefaultChild(class<SMStateUI> newDefault)
 	{
 		if (!IsBuilding())
@@ -358,7 +354,6 @@ class SMStateUI ui
 		m_ActiveChild.DrillEvent(eventId);
 	}
 	
-	
 	protected void SetActiveState(class<SMStateUI> newActiveClass)
 	{
 		let newActive = GetChild(newActiveClass);
@@ -382,7 +377,6 @@ class SMStateUI ui
 	{
 		EnterState();
 		if (m_ActiveChild == null) return;
-	
 		m_ActiveChild.CallEnter();
 	}
 	
@@ -493,9 +487,8 @@ class SMStateUI ui
 		return m_Machine.IsBuilding();
 	}
 }
-class SMMachineUI ui : SMStateUI abstract
+class SMMachineUI : SMStateUI abstract
 {
-	
 	Object m_Data;
 	private bool m_IsActive;
 	private bool m_IsBuilding;

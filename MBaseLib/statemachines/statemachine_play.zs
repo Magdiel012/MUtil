@@ -150,7 +150,6 @@ class SMStatePlay play
 		return null;
 	}
 	
-	
 	SMTransitionPlay GetTransition(name eventId, class<SMStatePlay> from) const
 	{
 		if (eventId == 'None' && from == null) return null;
@@ -235,7 +234,6 @@ class SMStatePlay play
 		return null;
 	}
 	
-	
 	SMStatePlay AddTransition(SMTransitionPlay newTransition)
 	{
 		if (newTransition.GetEventID() == 'None' && newTransition.GetFrom() == null)
@@ -270,7 +268,6 @@ class SMStatePlay play
 		m_Transitions.Push(newTransition);
 		return self;
 	}
-	
 	
 	SMStatePlay RemoveTransition(name eventId, class<SMStatePlay> from)
 	{
@@ -327,7 +324,6 @@ class SMStatePlay play
 		return RemoveTransition(eventId, null);
 	}
 	
-	
 	protected SMStatePlay SetDefaultChild(class<SMStatePlay> newDefault)
 	{
 		if (!IsBuilding())
@@ -358,7 +354,6 @@ class SMStatePlay play
 		m_ActiveChild.DrillEvent(eventId);
 	}
 	
-	
 	protected void SetActiveState(class<SMStatePlay> newActiveClass)
 	{
 		let newActive = GetChild(newActiveClass);
@@ -382,7 +377,6 @@ class SMStatePlay play
 	{
 		EnterState();
 		if (m_ActiveChild == null) return;
-	
 		m_ActiveChild.CallEnter();
 	}
 	
@@ -493,9 +487,8 @@ class SMStatePlay play
 		return m_Machine.IsBuilding();
 	}
 }
-class SMMachinePlay play : SMStatePlay abstract
+class SMMachinePlay : SMStatePlay abstract
 {
-	
 	Object m_Data;
 	private bool m_IsActive;
 	private bool m_IsBuilding;
