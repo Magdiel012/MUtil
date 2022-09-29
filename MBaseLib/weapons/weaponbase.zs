@@ -190,20 +190,28 @@ class WeaponBase : DoomWeapon abstract
 		m_PSpriteScale.SetBaseValue((1.0, 1.0));
 
 		m_WeaponRecoilSwayer = new("WeaponSwayer");
-		m_WeaponRecoilSwayer.SwayerInit(1.0 / m_RecoilResponseSpeed, 1.0 / m_RecoilReturnSpeed,
-			'RecoilTranslation', 'RecoilScale', (m_RecoilMaxTranslationX, m_RecoilMaxTranslationY),
+		m_WeaponRecoilSwayer.SwayerInit(
+			1.0 / m_RecoilResponseSpeed,
+			1.0 / m_RecoilReturnSpeed,
+			'RecoilTranslation',
+			'RecoilScale',
+			(m_RecoilMaxTranslationX, m_RecoilMaxTranslationY),
 			(m_RecoilMaxScaleX, m_RecoilMaxScaleY));
 		m_WeaponRecoilSwayer.AddTransform(m_PSpritePosition, m_PSpriteScale);
 
 		m_WeaponLookSwayer = new("WeaponSwayer");
-		m_WeaponLookSwayer.SwayerInit(1.0 / m_LookSwayResponseSpeed, 1.0 / m_LookSwayReturnSpeed,
-			'LookSwayTranslation', 'LookSwayScale', (m_LookSwayMaxTranslationX, m_LookSwayMaxTranslationY),
+		m_WeaponLookSwayer.SwayerInit(
+			1.0 / m_LookSwayResponseSpeed,
+			1.0 / m_LookSwayReturnSpeed,
+			'LookSwayTranslation',
+			'LookSwayScale',
+			(m_LookSwayMaxTranslationX, m_LookSwayMaxTranslationY),
 			(0, 0));
 		m_WeaponLookSwayer.AddTransform(m_PSpritePosition, m_PSpriteScale);
 
-		m_BobAmplitude = new("Interpolateddouble");
+		m_BobAmplitude = new("InterpolatedDouble");
 		m_BobAmplitude.m_SmoothTime = m_BobIntensityResponseTime;
-		m_BobPlaybackSpeed = new("Interpolateddouble");
+		m_BobPlaybackSpeed = new("InterpolatedDouble");
 		m_BobPlaybackSpeed.m_SmoothTime = m_BobSpeedResponseTime;
 
 		m_WeaponBobber = new("InterpolatedPSpriteTransform");
@@ -595,8 +603,8 @@ class WeaponBase : DoomWeapon abstract
 	private void WeaponLookSway()
 	{
 		let swayForce = (
-				(owner.Angle - m_PreviousPlayerYaw) * (M_PI / 180) * -m_LookSwayStrengthX,
-				(owner.Pitch - m_PreviousPlayerPitch) * (M_PI / 180) * m_LookSwayStrengthY);
+			(owner.Angle - m_PreviousPlayerYaw) * (M_PI / 180) * -m_LookSwayStrengthX,
+			(owner.Pitch - m_PreviousPlayerPitch) * (M_PI / 180) * m_LookSwayStrengthY);
 
 		m_WeaponLookSwayer.AddForce(swayForce);
 	}
