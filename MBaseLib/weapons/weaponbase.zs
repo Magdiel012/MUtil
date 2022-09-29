@@ -104,8 +104,8 @@ class WeaponBase : DoomWeapon abstract
 	protected WeaponSwayer m_WeaponLookSwayer;
 	protected InterpolatedPSpriteTransform m_WeaponBobber;
 
-	protected Interpolateddouble m_BobAmplitude;
-	protected Interpolateddouble m_BobPlaybackSpeed;
+	protected InterpolatedDouble m_BobAmplitude;
+	protected InterpolatedDouble m_BobPlaybackSpeed;
 
 	private bool m_Initialized;
 
