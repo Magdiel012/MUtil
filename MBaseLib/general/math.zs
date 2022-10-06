@@ -166,6 +166,48 @@ struct MathF
 	}
 }
 
+struct MathI
+{
+	static int Sign(int num)
+	{
+		return num >= 0 ? 1 : -1;
+	}
+
+	static int Lerp(int start, int end, int step)
+	{
+		return start + (end - start) * step;
+	}
+
+	static int Remap(int value, int aMin, int aMax, int bMin, int bMax)
+	{
+		return bMin + (value - aMin) * (bMax - bMin) / (aMax - aMin);
+	}
+
+	static int PosMod(int a, int b)
+	{
+		b = abs(b);
+
+		if (b == 0) ThrowAbortException("\"a mod 0\" is undefined.");
+
+		int remainder = a % b;
+		return remainder < 0 ? remainder + b : remainder;
+	}
+
+	static int Wrap(int value, int start, int end)
+	{
+		if (value < start)
+		{
+			value = end - (start - value) % (end - start);
+		}
+		else
+		{
+			value = start + (value - start) % (end - start);
+		}
+
+		return value;
+	}
+}
+
 struct MathVec2
 {
 	static vector2 Clamp(vector2 vector, double minLength, double maxLength)
