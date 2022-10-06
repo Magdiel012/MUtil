@@ -17,6 +17,16 @@ struct Math
 		return bMin + (value - aMin) * (bMax - bMin) / (aMax - aMin);
 	}
 
+	static double PosMod(double a, double b)
+	{
+		b = abs(b);
+
+		if (b == 0.0) ThrowAbortException("\"a mod 0\" is undefined.");
+
+		double remainder = a % b;
+		return remainder < 0 ? remainder + b : remainder;
+	}
+
 	static double Wrap(double value, double start, double end)
 	{
 		if (value < start)
@@ -88,6 +98,16 @@ struct MathF
 	static float Remap(float value, float aMin, float aMax, float bMin, float bMax)
 	{
 		return bMin + (value - aMin) * (bMax - bMin) / (aMax - aMin);
+	}
+
+	static float PosMod(float a, float b)
+	{
+		b = abs(b);
+
+		if (b == 0.0) ThrowAbortException("\"a mod 0\" is undefined.");
+
+		float remainder = a % b;
+		return remainder < 0.0 ? remainder + b : remainder;
 	}
 
 	static float Wrap(float value, float start, float end)
