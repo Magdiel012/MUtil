@@ -1,5 +1,7 @@
 struct Vec2Util
 {
+	//====================== Directions ======================//
+
 	static vector2 Forward()
 	{
 		return (1, 0);
@@ -20,6 +22,8 @@ struct Vec2Util
 	{
 		return (0, 0);
 	}
+
+	//======================= Swizzles =======================//
 
 	static vector2 XX(vector2 v) { return (v.x, v.x); }
 	static vector2 XY(vector2 v) => v;
@@ -82,6 +86,8 @@ struct Vec2Util
 
 struct Vec3Util
 {
+	//====================== Directions ======================//
+
 	static vector3 Forward()
 	{
 		return (1, 0, 0);
@@ -110,6 +116,8 @@ struct Vec3Util
 	{
 		return (0, 0, 0);
 	}
+
+	//======================= Swizzles =======================//
 
 	static vector2 XX(vector3 v) { return (v.x, v.x); }
 	static vector2 XY(vector3 v) { return (v.x, v.y); }
