@@ -1,4 +1,4 @@
-struct Vector2Util
+struct Vec2Util
 {
 	static vector2 Forward()
 	{
@@ -40,7 +40,7 @@ struct Vector2Util
 	}
 }
 
-struct Vector3Util
+struct Vec3Util
 {
 	static vector3 Forward()
 	{

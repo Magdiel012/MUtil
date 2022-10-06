@@ -443,8 +443,8 @@ class WeaponBase : DoomWeapon abstract
 		vector3 zxyOffset = (spawnOffset.z, -spawnOffset.x, -spawnOffset.y);
 
 		// Rotate offset to view direction
-		zxyOffset = MathVec3.Rotate(zxyOffset, Vector3Util.Left(), pawn.Pitch);
-		zxyOffset = MathVec3.Rotate(zxyOffset, Vector3Util.Up(), pawn.Angle);
+		zxyOffset = MathVec3.Rotate(zxyOffset, Vec3Util.Left(), pawn.Pitch);
+		zxyOffset = MathVec3.Rotate(zxyOffset, Vec3Util.Up(), pawn.Angle);
 
 		let position = spawnPoint + zxyOffset;
 
@@ -691,8 +691,8 @@ class WeaponBase : DoomWeapon abstract
 		vector3 zxyOffset = (spawnOffset.z, -spawnOffset.x, -spawnOffset.y);
 
 		// Rotate offset to view direction
-		zxyOffset = MathVec3.Rotate(zxyOffset, Vector3Util.Left(), pawn.Pitch);
-		zxyOffset = MathVec3.Rotate(zxyOffset, Vector3Util.Up(), pawn.Angle);
+		zxyOffset = MathVec3.Rotate(zxyOffset, Vec3Util.Left(), pawn.Pitch);
+		zxyOffset = MathVec3.Rotate(zxyOffset, Vec3Util.Up(), pawn.Angle);
 
 		let position = spawnPoint + zxyOffset;
 
@@ -785,8 +785,8 @@ class WeaponBase : DoomWeapon abstract
 			if (owner.ViewPos) originPosition += owner.ViewPos.Offset;
 			vector3 targetPosition = (mo.Pos.xy, mo.Pos.z + (mo.Height / 2.0));
 
-			vector3 lookDirection = Vector3Util.FromAngles(yaw, pitch);
-			vector3 targetDirection = Vector3Util.Direction(originPosition, targetPosition);
+			vector3 lookDirection = Vec3Util.FromAngles(yaw, pitch);
+			vector3 targetDirection = Vec3Util.Direction(originPosition, targetPosition);
 
 			double alignment = lookDirection dot targetDirection; // Name is incorrect, but meh.
 
@@ -810,8 +810,8 @@ class WeaponBase : DoomWeapon abstract
 				if (owner.ViewPos) originPosition += owner.ViewPos.Offset;
 				vector3 targetPosition = (mo.Pos.xy, mo.Pos.z + (mo.Height / 2.0));
 
-				vector3 lookDirection = Vector3Util.FromAngles(yaw, pitch);
-				vector3 targetDirection = Vector3Util.Direction(originPosition, targetPosition);
+				vector3 lookDirection = Vec3Util.FromAngles(yaw, pitch);
+				vector3 targetDirection = Vec3Util.Direction(originPosition, targetPosition);
 
 				double alignment = lookDirection dot targetDirection;
 
