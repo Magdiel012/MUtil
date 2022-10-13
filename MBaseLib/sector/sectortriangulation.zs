@@ -58,10 +58,12 @@ class SectorTriangulation
 		{
 			SectorTriangle secTriangle = triangulation.m_Triangles[i];
 			double previous = i > 0 ? triangulation.m_CumulativeDistribution[i - 1] : 0.0;
-			double next = (previous + Geometry.GetTriangleArea(
-				secTriangle.GetVertex(0).p,
-				secTriangle.GetVertex(1).p,
-				secTriangle.GetVertex(2).p)) / triangulation.m_Area;
+			double next = (
+				Geometry.GetTriangleArea(
+					secTriangle.GetVertex(0).p,
+					secTriangle.GetVertex(1).p,
+					secTriangle.GetVertex(2).p)
+				/ triangulation.m_Area) + previous;
 
 			triangulation.m_CumulativeDistribution.Push(next);
 		}
@@ -104,7 +106,7 @@ class SectorTriangulation
 
 		int i;
 
-		for (i = 0; i < m_CumulativeDistribution.Size(); ++i)
+		for (i = 0; i < m_CumulativeDistribution.Size() - 1; ++i)
 		{
 			if (target <= m_CumulativeDistribution[i]) break;
 		}
@@ -239,7 +241,7 @@ class SectorTriangulation
 		if (left < 0) left = 0;
 		if (right < 0) right = lines.Size() - 1;
 
-		int recursionMax = 100;
+		int recursionMax = 500;
 		if (recursionCount > recursionMax)
 		{
 			ThrowAbortException("Recursion count > %i", recursionMax);
@@ -248,7 +250,8 @@ class SectorTriangulation
 		if (left < right)
 		{
 			recursionCount++;
-			int partitionIndex = HorizontalLineSortPartition(lines, left, right);
+			int pivotIndex = left + (right - left) / 2;
+			int partitionIndex = HorizontalLineSortPartition(lines, left, right, pivotIndex);
 
 			SortLinesHorizontally(recursionCount, lines, left, partitionIndex - 1);
 			SortLinesHorizontally(recursionCount, lines, partitionIndex + 1, right);
@@ -257,36 +260,31 @@ class SectorTriangulation
 		recursionCount--;
 	}
 
-	private static int HorizontalLineSortPartition(out array<Line> lines, int leftIndex, int rightIndex)
+	private static int HorizontalLineSortPartition(out array<Line> lines, int left, int right, int pivotIndex)
 	{
-		Line pivot = lines[rightIndex];
-		int left = leftIndex;
-		int right = rightIndex;
+		Line pivot = lines[pivotIndex];
 
-		while (left < right)
+		while (left <= right)
 		{
-			vector2 pivotV1 = pivot.v1.p;
-
-			while (left < right && (lines[left].v1.p.x < pivotV1.x || (lines[left].v1.p.x == pivotV1.x && lines[left].v1.p.y < pivotV1.y)))
+			while (lines[left].v1.p.x < pivot.v1.p.x || (lines[left].v1.p.x ~== pivot.v1.p.x && lines[left].v1.p.y < pivot.v1.p.y))
 			{
 				++left;
 			}
-			while (left < right && (lines[right].v1.p.x > pivotV1.x || (lines[right].v1.p.x == pivotV1.x && lines[right].v1.p.y > pivotV1.y)))
+			while (lines[right].v1.p.x > pivot.v1.p.x || (lines[right].v1.p.x ~== pivot.v1.p.x && lines[right].v1.p.y > pivot.v1.p.y))
 			{
 				--right;
 			}
 
-			if (left < right)
+			if (left <= right)
 			{
 				Line swap = lines[left];
 				lines[left] = lines[right];
 				lines[right] = swap;
+
+				++left;
+				--right;
 			}
 		}
-
-		Line pivotSwap = lines[left];
-		lines[left] = lines[rightIndex];
-		lines[rightIndex] = pivotSwap;
 
 		return left;
 	}
