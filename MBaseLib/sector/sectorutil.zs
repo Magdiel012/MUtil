@@ -1,4 +1,4 @@
-class SectorUtil
+class SectorUtil play
 {
 	/**
 	 * Returns a vertex from one of the sector's lines with the given index,
@@ -16,15 +16,13 @@ class SectorUtil
 		return null;
 	}
 
-	// static vector2 GetRandomPoint(Sector sec)
-	// {
+	static vector2 GetRandomPoint(Sector sec)
+	{
+		return GetTriangulation(sec).GetRandomPoint();
+	}
 
-	// }
-
-	private static play SectorTriangulation GetTriangulation(Sector sec)
+	private static SectorTriangulation GetTriangulation(Sector sec)
 	{
 		return SectorDataRegistry.GetTriangulation(sec);
 	}
-
-	
 }
