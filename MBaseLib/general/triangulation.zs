@@ -99,16 +99,14 @@ class TriangulationPoint
 {
 	double m_X;
 	double m_Y;
-	int m_Index;
 
 	array<DTSweepConstraint> m_Edges;
 
-	static TriangulationPoint Create(double x, double y, int index = -1)
+	static TriangulationPoint Create(double x, double y)
 	{
 		TriangulationPoint p = new("TriangulationPoint");
 		p.m_X = x;
 		p.m_Y = y;
-		p.m_Index = index;
 		return p;
 	}
 
@@ -122,7 +120,6 @@ class TriangulationPoint
 		TriangulationPoint p = new("TriangulationPoint");
 		p.m_X = v.p.x;
 		p.m_Y = v.p.y;
-		p.m_Index = v.Index();
 		return p;
 	}
 
@@ -321,7 +318,6 @@ class PolygonPoint : TriangulationPoint
 		PolygonPoint p = new("PolygonPoint");
 		p.m_X = v.p.x;
 		p.m_Y = v.p.y;
-		p.m_Index = v.Index();
 		return p;
 	}
 
