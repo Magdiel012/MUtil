@@ -65,7 +65,7 @@ class ActorUtil
 			Actor mo = iterator.thing;
 
 			if (!mo.bSolid || !mo.bShootable) continue;
-			if (exclusions && exclusions.Size() > 0 && exclusions.Find(mo) != exclusions.Size()) continue;
+			if (exclusions && exclusions.Find(mo) != exclusions.Size()) continue;
 
 			vector3 position = targetCenter ? (mo.Pos.xy, mo.Pos.z + (mo.Height / 2.0)) : mo.Pos;
 			vector3 toTarget = position - origin;
@@ -80,7 +80,7 @@ class ActorUtil
 				return;
 			}
 
-			double attenuatedForce = (radius - distance) / radius * thrustForce / (mo.Mass * 0.5);
+			double attenuatedForce = (radius - distance) / radius * force / (mo.Mass * 0.5);
 
 			Thrust3D(mo, toTarget, attenuatedForce);
 		}
