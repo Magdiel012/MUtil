@@ -82,6 +82,7 @@ class ActorUtil
 					break;
 				case THRTARGET_Top:
 					position = (mo.Pos.xy, mo.Pos.z + mo.Height);
+					break;
 				case THRTARGET_Origin:
 				default:
 					position = mo.Pos;
