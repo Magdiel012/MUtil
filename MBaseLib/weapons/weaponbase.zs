@@ -646,7 +646,7 @@ class WeaponBase : DoomWeapon abstract
 
 		if (!m_BobAnim)
 		{
-			FallbackWeaponBob(speedPercentage);
+			ProceduralWeaponBob(speedPercentage);
 		}
 		else
 		{
@@ -656,7 +656,7 @@ class WeaponBase : DoomWeapon abstract
 		}
 	}
 
-	private void FallbackWeaponBob(double speedPercentage)
+	private void ProceduralWeaponBob(double speedPercentage)
 	{
 		double amplitude = m_BobAmplitude.GetValue() * 4.0;
 		double frequency = m_BobSpeed * 0.75;
