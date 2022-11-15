@@ -88,7 +88,7 @@ class LevelUtil play
 
 			double attenuatedForce = (radius - distance) / radius * force;
 
-			Thrust3D(mo, toTarget, attenuatedForce);
+			ActorUtil.Thrust3D(mo, toTarget, attenuatedForce);
 		}
 	}
 }
