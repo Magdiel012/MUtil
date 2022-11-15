@@ -104,23 +104,10 @@ class ActorUtil
 
 			if (distance > radius) continue;
 
-			LineTracer tracer = new("LineTracer");
-			bool traceHit = tracer.Trace(position, mo.cursector, toTarget.Unit(), distance, TRACE_NoSky);
-			string hitType;
-			switch (tracer.results.HitType)
-			{
-				case TRACE_HitNone:			hitType = "TRACE_HitNone"; break;
-				case TRACE_HitFloor:		hitType = "TRACE_HitFloor"; break;
-				case TRACE_HitCeiling:		hitType = "TRACE_HitCeiling"; break;
-				case TRACE_HitWall:			hitType = "TRACE_HitWall"; break;
-				case TRACE_HitActor:		hitType = "TRACE_HitActor"; break;
-				case TRACE_CrossingPortal:	hitType = "TRACE_CrossingPortal"; break;
-				case TRACE_HasHitSky:		hitType = "TRACE_HasHitSky"; break;
-				default: break;
-			}
-			Console.Printf("Trace hit?: %s", traceHit ? "Yes" : "No");
-			if (traceHit) Console.Printf("Hit type: %s", hitType);
-			if (!traceHit || tracer.results.HitType != TRACE_HitActor)
+			LineTracer tracer = new("LogLineTracer");
+			bool traceHit = tracer.Trace(origin, Level.PointInSector(origin.xy), toTarget.Unit(), distance, 0);
+
+			if (!traceHit || tracer.Results.HitType != TRACE_HitActor || tracer.Results.HitActor != mo)
 			{
 				continue;
 			}
