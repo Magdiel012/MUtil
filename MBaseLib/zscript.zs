@@ -4,7 +4,6 @@
 #include "./general/modifiablevalues.zs"
 #include "./general/pspritetransform.zs"
 #include "./general/screenutil.zs"
-#include "./general/math.zs"
 #include "./general/vectorutil.zs"
 #include "./general/triangulation.zs"
 #include "./general/actorutil.zs"
@@ -22,3 +21,4 @@
 #include "./agents/worldagenthandler.zs"
 #include "./math/math.zs"
 #include "./math/matrix.zs"
+#include "./math/transform.zs"
