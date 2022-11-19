@@ -20,3 +20,5 @@
 #include "./sector/sectordataregistry.zs"
 #include "./agents/agent.zs"
 #include "./agents/worldagenthandler.zs"
+#include "./math/math.zs"
+#include "./math/matrix.zs"
