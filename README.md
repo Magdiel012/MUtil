@@ -1,6 +1,6 @@
-# MBase
+# MUtil
 
-MBase is a ZScript library that attempts to provide a highly-flexible foundation for
+MUtil is a ZScript library that attempts to provide a highly-flexible foundation for
 GZDoom mods, including a robust state machine implementation to manage complex logic,
 a generic system for displaying UI elements without custom status bars, tools for
 triangulating sector geometry, among other utilities.
@@ -9,22 +9,22 @@ triangulating sector geometry, among other utilities.
 
 ### ZScript Includes
 
-First, bring the MBaseLib folder into the root of your project archive or directory.
+First, bring the MUtilLib folder into the root of your project archive or directory.
 
 ![Example directory structure](doc/setup-1.png)
 
 Then include the main ZScript file from the library.
 ```c
-#include "MBaseLib/zscript.zs"
+#include "MUtilLib/zscript.zs"
 ```
 This file will `#include` all other ZScript files contained in the library. However,
 GZDoom's preprocessor will include these after all other includes in the same file.
-`#include`s that contain extensions to or classes deriving from types defined in MBase
-will need to be included from an additional file after the MBaseLib include, like so:
+`#include`s that contain extensions to or classes deriving from types defined in MUtil
+will need to be included from an additional file after the MUtilLib include, like so:
 ```c
 // zscript.zs
 
-#include "MBaseLib/zscript.zs"
+#include "MUtilLib/zscript.zs"
 
 #include "zscript/several.zs"
 #include "zscript/other.zs"
@@ -40,7 +40,7 @@ will need to be included from an additional file after the MBaseLib include, lik
 #include "zscript/extend.zs"
 #include "zscript/types.zs"
 #include "zscript/from.zs"
-#include "zscript/mbaselib.zs"
+#include "zscript/MUtillib.zs"
 
 ```
 
@@ -54,7 +54,7 @@ You will need to add the follwoing event handlers in the `GameInfo` block.
 ```cs
 GameInfo
 {
-	AddEventHandlers = "HUDExtensionRegistry", "SectorDataRegistry"
+	AddEventHandlers = "HUDExtensionRegistry", "SectorDataRegistry", "WorldAgentHandler"
 }
 ```
 > If starting a new project, you may use the premade files in the `setuptemplate`
