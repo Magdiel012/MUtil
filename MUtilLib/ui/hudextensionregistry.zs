@@ -92,8 +92,8 @@ class HUDExtensionRegistry : EventHandler
 
 	protected void AddExtensionEntry(Object context, int registrant, HUDExtension extension)
 	{
-		extension.QueueActivate();
-		let entry = CreateEntry(context, registrant, extension);
+		extension.Init(context);
+		let entry = CreateEntry(registrant, extension);
 		m_Entries.Push(entry);
 	}
 
@@ -114,7 +114,7 @@ class HUDExtensionRegistry : EventHandler
 		return HUDExtensionRegistry(EventHandler.Find("HUDExtensionRegistry"));
 	}
 
-	private static HUDExtensionEntry CreateEntry(Object context, int registrant, HUDExtension extension)
+	private static HUDExtensionEntry CreateEntry(int registrant, HUDExtension extension)
 	{
 		let entry = new("HUDExtensionEntry");
 		entry.m_Registrant = registrant;
