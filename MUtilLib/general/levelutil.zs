@@ -59,52 +59,7 @@ class LevelUtil play
 
 			mo.DamageMobj(inflictor, source, attenuatedDamage, 'Explosive', DMG_THRUSTLESS | DMG_EXPLOSION);
 
-	static play void RadiusThrust3D(
-		vector3 origin,
-		double force,
-		double radius,
-		EThrustTarget thrustTarget = THRTARGET_Top,
-		array<Actor> exclusions = null)
-	{
-		let iterator = BlockThingsIterator.CreateFromPos(origin.x, origin.y, origin.z, radius, radius, false);
-
-		while (iterator.Next())
-		{
-			Actor mo = iterator.thing;
-
-			if (!mo.bSolid || !mo.bShootable || mo.bDontThrust) continue;
-			if (exclusions && exclusions.Find(mo) != exclusions.Size()) continue;
-
-			vector3 position;
-			switch (thrustTarget)
-			{
-				case THRTARGET_Center:
-					position = (mo.Pos.xy, mo.Pos.z + (mo.Height / 2.0));
-					break;
-				case THRTARGET_Top:
-					position = (mo.Pos.xy, mo.Pos.z + mo.Height);
-					break;
-				case THRTARGET_Origin:
-				default:
-					position = mo.Pos;
-					break;
-			}
-			vector3 toTarget = position - origin;
-			double distance = toTarget.Length();
-
-			if (distance > radius) continue;
-
-			LineTracer tracer = new("LineTracer");
-			bool traceHit = tracer.Trace(origin, Level.PointInSector(origin.xy), toTarget.Unit(), distance, 0);
-
-			if (!traceHit || tracer.Results.HitType != TRACE_HitActor || tracer.Results.HitActor != mo)
-			{
-				continue;
-			}
-
-			double attenuatedForce = (radius - distance) / radius * force;
-
-			ActorUtil.Thrust3D(mo, toTarget, attenuatedForce);
+			ActorUtil.Thrust3D(mo, toTarget + thrustOffset, attenuatedForce);
 		}
 	}
 }
