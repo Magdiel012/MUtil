@@ -21,9 +21,11 @@ class ActorUtil
 		double radius,
 		EThrustTarget thrustTarget = THRTARGET_Top,
 		array<Actor> exclusions = null,
-		vector3 thrustOffset = (0.0, 0.0, 0.0))
+		Actor inflictor = null;
+		vector3 thrustOffset = (0.0, 0.0, 0.0),
+		bool checkHit = true)
 	{
-		LevelUtil.Explode3D(origin.Pos, damage, thrustForce, radius, thrustTarget, exclusions, origin, thrustOffset);
+		LevelUtil.Explode3D(origin.Pos, damage, thrustForce, radius, thrustTarget, exclusions, origin, inflictor, thrustOffset, checkHit);
 	}
 
 	static play void Thrust3D(

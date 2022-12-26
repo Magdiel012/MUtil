@@ -8,7 +8,9 @@ class LevelUtil play
 		EThrustTarget thrustTarget = THRTARGET_Top,
 		array<Actor> exclusions = null,
 		Actor source = null,
-		vector3 thrustOffset = (0.0, 0.0, 0.0))
+		Actor inflictor = null,
+		vector3 thrustOffset = (0.0, 0.0, 0.0)
+		bool checkHit = true)
 	{
 		let iterator = BlockThingsIterator.CreateFromPos(origin.x, origin.y, origin.z, radius, radius, false);
 
@@ -39,9 +41,6 @@ class LevelUtil play
 
 			if (distance > radius) continue;
 
-			int attenuatedDamage = int(round((radius - distance) / radius * damage));
-			double attenuatedForce = (radius - distance) / radius * thrustForce;
-
 			if (!source) source = WorldAgentHandler.GetWorldAgent();
 
 			vector3 oldPosition = source.Pos;
@@ -53,14 +52,12 @@ class LevelUtil play
 
 			source.SetOrigin(oldPosition, false);
 
-			if (traceData.HitActor != mo) continue;
+			if (checkHit && traceData.HitActor != mo) continue;
 
-			mo.DamageMobj(null, source, attenuatedDamage, 'Explosive', DMG_THRUSTLESS | DMG_EXPLOSION);
+			int attenuatedDamage = int(round((radius - distance) / radius * damage));
+			double attenuatedForce = (radius - distance) / radius * thrustForce;
 
-			toTarget = position - (origin + thrustOffset);
-			ActorUtil.Thrust3D(mo, toTarget, attenuatedForce);
-		}
-	}
+			mo.DamageMobj(inflictor, source, attenuatedDamage, 'Explosive', DMG_THRUSTLESS | DMG_EXPLOSION);
 
 	static play void RadiusThrust3D(
 		vector3 origin,
