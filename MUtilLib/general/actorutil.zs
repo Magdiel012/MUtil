@@ -19,7 +19,7 @@ class ActorUtil
 		int damage,
 		double thrustForce,
 		double radius,
-		EThrustTarget thrustTarget = THRTARGET_Top,
+		EThrustTarget thrustTarget = THRTARGET_Center,
 		array<Actor> exclusions = null,
 		Actor inflictor = null;
 		vector3 thrustOffset = (0.0, 0.0, 0.0),

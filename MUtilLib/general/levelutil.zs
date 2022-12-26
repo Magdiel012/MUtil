@@ -5,7 +5,7 @@ class LevelUtil play
 		int damage,
 		double thrustForce,
 		double radius,
-		EThrustTarget thrustTarget = THRTARGET_Top,
+		EThrustTarget thrustTarget = THRTARGET_Center,
 		array<Actor> exclusions = null,
 		Actor source = null,
 		Actor inflictor = null,
