@@ -1,14 +1,9 @@
 class ActorUtil
 {
-	static vector3 PosRelativeToActor(Actor this, Actor other)
-	{
-		return this.PosRelative(other.cursector);
-	}
-
 	static double PitchTo(Actor this, Actor other, bool absolute = false, bool centerHeight = true)
 	{
 		vector3 origin = this.Pos;
-		vector3 target = absolute ? other.Pos : PosRelativeToActor(other, this);
+		vector3 target = absolute ? other.Pos : other.PosRelative(this.cursector);
 
 		if (centerHeight)
 		{
