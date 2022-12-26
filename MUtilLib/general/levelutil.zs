@@ -9,7 +9,7 @@ class LevelUtil play
 		array<Actor> exclusions = null,
 		Actor source = null,
 		Actor inflictor = null,
-		vector3 thrustOffset = (0.0, 0.0, 0.0)
+		vector3 thrustOffset = (0.0, 0.0, 0.0),
 		bool checkHit = true)
 	{
 		let iterator = BlockThingsIterator.CreateFromPos(origin.x, origin.y, origin.z, radius, radius, false);

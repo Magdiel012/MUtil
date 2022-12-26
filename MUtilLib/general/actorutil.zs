@@ -21,7 +21,7 @@ class ActorUtil
 		double radius,
 		EThrustTarget thrustTarget = THRTARGET_Center,
 		array<Actor> exclusions = null,
-		Actor inflictor = null;
+		Actor inflictor = null,
 		vector3 thrustOffset = (0.0, 0.0, 0.0),
 		bool checkHit = true)
 	{
