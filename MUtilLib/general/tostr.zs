@@ -1,11 +1,9 @@
 /**
- * Contais convenience methods for getting string representations of several types
+ * Contains convenience methods for getting string representations of several types
 **/
 class ToStr
 {
-	/**
-	 * Returns a string representing the value of the given boolean.
-	**/
+	/** Returns a string representing the value of the given boolean. **/
 	static string Bool(bool value) { return value ? "true" : "false"; }
 
 	/**
@@ -20,9 +18,7 @@ class ToStr
 	**/
 	static string Uint(int value) { return string.Format("%u", value); }
 
-	/**
-	 * Returns a string representing the color values of the given color, formatted as RGBA.
-	**/
+	/** Returns a string representing the color values of the given color, formatted as RGBA. **/
 	static string Color(color value) { return string.Format("R: %u, G: %u, B: %u, A: %u", value.r, value.g, value.b, value.a); }
 
 	// Yuck...
