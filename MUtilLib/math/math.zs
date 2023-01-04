@@ -59,7 +59,7 @@ class Math
 	{
 		if (delta == 0.0) return from; // Avoid division by zero.
 
-		smoothTime = max(0.001, smoothTime);
+		smoothTime = max(0.000001, smoothTime);
 		double omega = 2.0 / smoothTime;
 		double x = omega * delta;
 		double exponent = 1 / (1 + x + (0.48 * x * x) + (0.235 * x * x * x));
@@ -144,7 +144,7 @@ class MathF
 	{
 		if (delta == 0.0) return from; // Avoid division by zero.
 
-		smoothTime = max(0.001, smoothTime);
+		smoothTime = max(0.000001, smoothTime);
 		float omega = 2.0 / smoothTime;
 		float x = omega * delta;
 		float exponent = 1 / (1 + x + (0.48 * x * x) + (0.235 * x * x * x));
@@ -248,7 +248,8 @@ class MathVec2
 
 	static vector2 Rotate(vector2 vector, double angle)
 	{
-		return (vector.x * cos(angle) - vector.y * sin(angle), vector.x * sin(angle) + vector.y * cos(angle));
+		return Actor.RotateVector(vector, angle);
+		// return (vector.x * cos(angle) - vector.y * sin(angle), vector.x * sin(angle) + vector.y * cos(angle));
 	}
 
 	static vector2 RotateAround(vector2 vector, vector2 pivot, double angle)
@@ -276,7 +277,7 @@ class MathVec2
 	{
 		if (delta == 0.0) return from; // Avoid division by zero.
 
-		smoothTime = max(0.001, smoothTime);
+		smoothTime = max(0.000001, smoothTime);
 		double omega = 2.0 / smoothTime;
 		double x = omega * delta;
 		double exponent = 1.0 / (1.0 + x + (0.48 * x * x) + (0.235 * x * x * x));
@@ -286,7 +287,6 @@ class MathVec2
 
 		double maxDifference = maxSpeed * smoothTime;
 		double maxDifferenceSquared = maxDifference * maxDifference;
-
 
 		double squareMagnitude = (xDifference * xDifference) + (yDifference * yDifference);
 
@@ -386,7 +386,7 @@ class MathVec3
 	{
 		if (delta == 0.0) return from; // Avoid division by zero.
 
-		smoothTime = max(0.001, smoothTime);
+		smoothTime = max(0.000001, smoothTime);
 		double omega = 2.0 / smoothTime;
 		double x = omega * delta;
 		double exponent = 1.0 / (1.0 + x + (0.48 * x * x) + (0.235 * x * x * x));
