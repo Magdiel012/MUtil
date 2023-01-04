@@ -202,6 +202,7 @@ class WeaponBase : DoomWeapon abstract
 			maxRotation: m_RecoilMaxRotation,
 			maxScale: (m_RecoilMaxScaleX, m_RecoilMaxScaleY));
 		m_WeaponRecoilSwayer.AddTransform(m_PSpritePosition, m_PSpriteRotation, m_PSpriteScale);
+		m_WeaponRecoilSwayer.ForceSet((0.0, 0.0), 0.0, (1.0, 1.0));
 
 		m_WeaponLookSwayer = WeaponSwayer.Create(
 			1.0 / m_LookSwayResponseSpeed,
@@ -210,6 +211,7 @@ class WeaponBase : DoomWeapon abstract
 			maxRotation: 0.0,
 			maxScale: (1.0, 1.0));
 		m_WeaponLookSwayer.AddTransform(m_PSpritePosition, m_PSpriteRotation, m_PSpriteScale);
+		m_WeaponLookSwayer.ForceSet((0.0, 0.0), 0.0, (1.0, 1.0));
 
 		m_BobAmplitude = new("InterpolatedDouble");
 		m_BobAmplitude.m_SmoothTime = m_BobIntensityResponseTime;
@@ -219,6 +221,7 @@ class WeaponBase : DoomWeapon abstract
 		m_WeaponBobber = new("InterpolatedPSpriteTransform");
 		m_WeaponBobber.InterpolatedInit(1.0 / TICRATE);
 		m_WeaponBobber.AddTransform(m_PSpritePosition, m_PSpriteRotation, m_PSpriteScale);
+		m_WeaponBobber.ForceSet((0.0, 0.0), 0.0, (1.0, 1.0));
 
 		if (m_BobAnimName != 'None') m_BobAnim = BakedCurve.LoadCurve(m_BobAnimName);
 
@@ -1189,7 +1192,7 @@ class WeaponSwayer : InterpolatedPSpriteTransform
 
 		m_InterpolatedScale.m_Target = MathVec2.SmoothDamp(
 			m_InterpolatedScale.m_Target,
-			(0.0, 0.0),
+			(1.0, 1.0),
 			m_TargetScaleSpeed,
 			m_TargetSmoothTime,
 			double.Infinity,
