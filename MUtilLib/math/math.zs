@@ -412,6 +412,10 @@ class MathVec3
 
 	static vector2 ToYawAndPitch(vector3 vector)
 	{
+		vector = vector.Unit();
+
+		if (vector.xy == (0.0, 0.0)) return (0.0, 180.0 * vector.z);
+
 		return (atan2(vector.y, vector.x), atan(vector.z / sqrt(vector.x * vector.x + vector.y * vector.y)));
 	}
 
