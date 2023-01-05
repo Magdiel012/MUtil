@@ -188,6 +188,8 @@ class WeaponBase : DoomWeapon abstract
 
 	override void BeginPlay()
 	{
+		Super.BeginPlay();
+
 		m_PSpritePosition = new("ModifiableVector2");
 		m_PSpriteRotation = new("ModifiableDouble");
 		m_PSpriteScale = new("ModifiableVector2");
