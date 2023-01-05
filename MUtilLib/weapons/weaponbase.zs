@@ -26,8 +26,6 @@ class WeaponBase : DoomWeapon abstract
 	ModifiableDouble m_PSpriteRotation;
 	ModifiableVector2 m_PSpriteScale;
 
-	ButtonEventQueue m_InputQueue;
-
 	int m_Damage;
 	property Damage: m_Damage;
 
@@ -110,6 +108,7 @@ class WeaponBase : DoomWeapon abstract
 	protected WeaponSwayer m_WeaponRecoilSwayer;
 	protected WeaponSwayer m_WeaponLookSwayer;
 	protected InterpolatedPSpriteTransform m_WeaponBobber;
+	protected ButtonEventQueue m_InputQueue;
 
 	protected InterpolatedDouble m_BobAmplitude;
 	protected InterpolatedDouble m_BobPlaybackSpeed;
@@ -241,23 +240,10 @@ class WeaponBase : DoomWeapon abstract
 
 	override void Travelled()
 	{
-		if (!m_InputQueue) m_InputQueue = new("ButtonEventQueue").Init(PlayerPawn(owner));
-
 		if (IsSelected())
 		{
 			m_StateMachine.SendEvent('TravelledWhileEquipped');
 		}
-	}
-
-	override bool TryPickup(in out Actor toucher)
-	{
-		if (!Super.TryPickup(toucher))
-		{
-			return false;
-		}
-
-		m_InputQueue = new("ButtonEventQueue").Init(PlayerPawn(owner));
-		return true;
 	}
 
 	override void DoEffect()
@@ -282,11 +268,10 @@ class WeaponBase : DoomWeapon abstract
 			psp.y = m_PSpritePosition.GetY();
 			psp.scale = m_PSpriteScale.GetValue();
 
-			ButtonEventQueue queue = GetInputQueue();
-			if (!queue) return;
+			m_InputQueue.ListenForButtonEvents(owner.Player.mo);
 
 			int buttonEvent, eventType;
-			[buttonEvent, eventType] = queue.TryConsumeEvent();
+			[buttonEvent, eventType] = m_InputQueue.TryConsumeEvent();
 
 			if (buttonEvent != 0 && eventType != 0)
 			{
@@ -304,11 +289,6 @@ class WeaponBase : DoomWeapon abstract
 
 	virtual void TryHandleButtonEvent(int event, int eventType) { }
 
-	ButtonEventQueue GetInputQueue() const
-	{
-		return m_InputQueue;
-	}
-
 	HUDExtension GetHUDExtension() const
 	{
 		return m_HUDExtension;
@@ -317,7 +297,7 @@ class WeaponBase : DoomWeapon abstract
 	bool IsSelected() const
 	{
 		return owner
-			&& owner.player
+			&& owner.Player
 			&& owner.Player.ReadyWeapon
 			&& owner.Player.ReadyWeapon == self;
 	}
@@ -516,14 +496,14 @@ class WeaponBase : DoomWeapon abstract
 
 	void WeaponReadyNoFire(int flags = 0)
 	{
-		if (!owner.player) return;
+		if (!owner.Player) return;
 
-		DoReadyWeaponToSwitch(owner.player, !(flags & WRF_NoSwitch));
+		DoReadyWeaponToSwitch(owner.Player, !(flags & WRF_NoSwitch));
 
-		if (!(flags & WRF_NoBob)) DoReadyWeaponToBob(owner.player);
+		if (!(flags & WRF_NoBob)) DoReadyWeaponToBob(owner.Player);
 
 		owner.Player.WeaponState |= GetButtonStateFlags(flags);
-		DoReadyWeaponDisableSwitch(owner.player, flags & WRF_DisableSwitch);
+		DoReadyWeaponDisableSwitch(owner.Player, flags & WRF_DisableSwitch);
 	}
 
 	action void A_SendEventToSM(name eventId)
@@ -641,11 +621,11 @@ class WeaponBase : DoomWeapon abstract
 	private void WeaponBob()
 	{
 		double normalizedForwardMove = Math.Remap(
-			owner.player.mo.GetPlayerInput(MODINPUT_FORWARDMOVE),
+			owner.Player.mo.GetPlayerInput(MODINPUT_FORWARDMOVE),
 				-MAX_FORWARD_MOVE, MAX_FORWARD_MOVE,
 				-1.0, 1.0);
 		double normalizedSideMove = Math.Remap(
-			owner.player.mo.GetPlayerInput(MODINPUT_SIDEMOVE),
+			owner.Player.mo.GetPlayerInput(MODINPUT_SIDEMOVE),
 				-MAX_SIDE_MOVE, MAX_SIDE_MOVE,
 				-1.0, 1.0);
 
@@ -774,7 +754,7 @@ class WeaponBase : DoomWeapon abstract
 
 		if (projectile.bSPECTRAL)
 		{
-			projectile.SetFriendPlayer(owner.player);
+			projectile.SetFriendPlayer(owner.Player);
 		}
 
 		if (!projectile.CheckMissileSpawn(owner.Radius))
@@ -910,7 +890,7 @@ class WeaponBase : DoomWeapon abstract
 	{
 		double autoaim = owner.Player.GetAutoaim();
 		bool allowAutoaim = GetCVar('sv_autoaim') == 1;
-		bool freelook = CVar.GetCVar('freelook', owner.player).GetBool();
+		bool freelook = CVar.GetCVar('freelook', owner.Player).GetBool();
 
 		return allowAutoaim && (autoaim > 0.5 && !bNoAutoAim) || (freelook && !level.IsFreelookAllowed());
 	}
@@ -991,9 +971,6 @@ class SMWeaponUnequipped : SMWeaponState
 {
 	override void EnterState()
 	{
-		let queue = GetWeapon().GetInputQueue();
-		if (queue) queue.StopListening();
-
 		let pawn = GetPlayerPawn();
 
 		if (!pawn || pawn.Player.PendingWeapon == WP_NOCHANGE) return;
@@ -1012,15 +989,6 @@ class SMWeaponSwitchingIn : SMWeaponState
 
 class SMWeaponEquipped : SMWeaponState
 {
-	ButtonEventQueue queue;
-
-	override void UpdateState()
-	{
-		// Doing this every frame is a bit redundant, but SkipRaiseAnimWhenTravelling
-		// can prevent this from happening on entry (no clue why).
-		if (!queue) queue = GetWeapon().GetInputQueue();
-		queue.StartListening();
-	}
 }
 
 class SMWeaponSwitchingOut : SMWeaponState
