@@ -50,7 +50,7 @@ struct Matrix2x2
 		{
 			for (int j = 0; j < 2; ++j)
 			{
-				result.m_Values[i][j] = m_Values[i][j] + other.m_Values[i][j];
+				result.m_Values[i][j] = m_Values[i][j] - other.m_Values[i][j];
 			}
 		}
 	}
@@ -126,7 +126,7 @@ struct Matrix3x3
 		{
 			for (int j = 0; j < 3; ++j)
 			{
-				result.m_Values[i][j] = m_Values[i][j] + other.m_Values[i][j];
+				result.m_Values[i][j] = m_Values[i][j] - other.m_Values[i][j];
 			}
 		}
 	}
@@ -204,7 +204,7 @@ struct Matrix4x4
 		{
 			for (int j = 0; j < 4; ++j)
 			{
-				result.m_Values[i][j] = m_Values[i][j] + other.m_Values[i][j];
+				result.m_Values[i][j] = m_Values[i][j] - other.m_Values[i][j];
 			}
 		}
 	}
