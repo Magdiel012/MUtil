@@ -68,8 +68,11 @@ class Math
 
 	/**
 	 * Smoothly shifts the given current value to the given target value via a process
-	 * resembling a spring-damper function. Most use cases will want to pass the return
-	 * value back into the current argument every time the method is called.
+	 * resembling a spring-damper function.
+	 * 
+	 * NOTE:
+	 *		Most use cases will want to pass the return value back into the current
+	 *		argument every time the method is called.
 	 *
 	 * Parameters;
 	 * - current: the current value.
@@ -193,8 +196,11 @@ class MathF
 
 	/**
 	 * Smoothly shifts the given current value to the given target value via a process
-	 * resembling a spring-damper function. Most use cases will want to pass the return
-	 * value back into the current argument every time the method is called.
+	 * resembling a spring-damper function.
+	 * 
+	 * NOTE:
+	 *		Most use cases will want to pass the return value back into the current
+	 *		argument every time the method is called.
 	 *
 	 * Parameters;
 	 * - current: the current value.
@@ -369,8 +375,11 @@ class MathVec2
 
 	/**
 	 * Smoothly shifts the given current value to the given target value via a process
-	 * resembling a spring-damper function. Most use cases will want to pass the return
-	 * value back into the current argument every time the method is called.
+	 * resembling a spring-damper function.
+	 * 
+	 * NOTE:
+	 *		Most use cases will want to pass the return value back into the current
+	 *		argument every time the method is called.
 	 *
 	 * Parameters;
 	 * - current: the current value.
@@ -515,8 +524,11 @@ class MathVec3
 
 	/**
 	 * Smoothly shifts the given current value to the given target value via a process
-	 * resembling a spring-damper function. Most use cases will want to pass the return
-	 * value back into the current argument every time the method is called.
+	 * resembling a spring-damper function.
+	 * 
+	 * NOTE:
+	 *		Most use cases will want to pass the return value back into the current
+	 *		argument every time the method is called.
 	 *
 	 * Parameters;
 	 * - current: the current value.

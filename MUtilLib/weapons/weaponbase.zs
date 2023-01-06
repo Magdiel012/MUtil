@@ -1,6 +1,6 @@
-// TODO: Document WeaponBase.
+// TODO: Document WeaponBase :pensive:.
 
-// Note: Make sure to mention how WeaponBase is much more opinionated than the rest of the codebase.
+// NOTE: Make sure to mention how WeaponBase is much more opinionated than the rest of the codebase.
 class WeaponBase : DoomWeapon abstract
 {
 	// Smart auto-aim modes.

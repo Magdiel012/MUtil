@@ -1,3 +1,4 @@
+/** The types of input events that ButtonEventQueue can hold. **/
 enum EButtonEventType
 {
 	BTEVENT_None,
@@ -5,12 +6,17 @@ enum EButtonEventType
 	BTEVENT_Released
 }
 
-// TODO: (Maybe?) Document ButtonEventQueue.
+/**
+ * Represents a queue of input events from player input.
+ *
+ * NOTE: Does not detect custom input handled via event handlers.
+**/
 struct ButtonEventQueue play
 {
 	private array<int> m_Events;
 	private array<int> m_EventTypes;
 
+	/** Returns a string representation of the given event and event type values. **/
 	static name GetAsString(int event, int type)
 	{
 		string eventText;
@@ -58,6 +64,24 @@ struct ButtonEventQueue play
 		return eventText;
 	}
 
+	/** Returns a string representation of this ButtonEventQueue. **/
+	string ToString() const
+	{
+		Console.Printf("Input events:")
+		
+		if (m_Events.Size() == 0)
+		{
+			Console.Printf("\n    None.");
+			return;
+		}
+
+		for (int i = 0; i < m_Events.Size(); ++i)
+		{
+			Console.Printf(string.Format("\n    %i: ", i)..GetAsString(m_Events[i], m_EventTypes[i]));
+		}
+	}
+
+	/** Returns the next input event in the queue, or [0, 0] if there are none. **/
 	int, int TryConsumeEvent()
 	{
 		if (m_Events.Size() == 0) return 0, 0;
@@ -70,6 +94,11 @@ struct ButtonEventQueue play
 		return event, eventType;
 	}
 
+	/**
+	 * Queues inputs from the given PlayerPawn's player.
+	 *
+	 * NOTE: Most use cases will want to call this once per tic.
+	**/
 	void ListenForButtonEvents(PlayerPawn pawn)
 	{
 		int newButtons = pawn.GetPlayerInput(MODINPUT_BUTTONS);
@@ -78,7 +107,7 @@ struct ButtonEventQueue play
 		uint diff = uint(newButtons ^ oldButtons);
 		for (int pos = 0; pos != 32 ; ++pos)
 		{
-			// Bits set to 1 are the buttons that changed
+			// Bits set to 1 are the buttons that changed.
 			if (diff & (1 << pos))
 			{
 				if (newButtons & (1 << pos))
