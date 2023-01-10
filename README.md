@@ -2,8 +2,8 @@
 
 MUtil is a ZScript library that attempts to provide a highly-flexible foundation for
 GZDoom mods, including a robust state machine implementation to manage complex logic,
-a generic system for displaying UI elements without custom status bars, tools for
-triangulating sector geometry, among other utilities.
+systems for encapsulating HUD logic, tools for triangulating sector geometry, among
+other utilities.
 
 ## Setup
 
