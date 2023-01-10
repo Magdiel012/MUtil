@@ -50,7 +50,7 @@ You will need to make edits to certain lumps in your project, or add them if mis
 
 ##### MAPINFO
 
-You will need to add the follwoing event handlers in the `GameInfo` block.
+You will need to add the following event handlers in the `GameInfo` block.
 ```cs
 GameInfo
 {
@@ -59,17 +59,3 @@ GameInfo
 ```
 > If starting a new project, you may use the premade files in the `setuptemplate`
 > folder instead.
-
-### Optional Setup
-
-#### RPLCA0.png
-
-The `WeaponBase` actor uses the RPLC sprite for states that are meant to be replaced
-by deriving actors supplying their own sprite, as a visual reminder that the sprite
-needs to be replaced:
-
-![Replace Me image](extra/sprites/RPLCA0.png)
-
-Although `WeaponBase` remains fully-functional without it, you are encouraged to
-import this sprite to avoid these states appearing blank, which may be misinterpreted
-as an unrelated bug during development. You will find it in `extra/sprites/`.
