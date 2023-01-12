@@ -968,7 +968,7 @@ class Geometry
 
 		double d = ((b.y - c.y) * (point.x - c.y) + (c.x - b.x) * (point.y - c.y)) / denominator;
 		double e = ((c.y - a.y) * (point.x - x3) + (a.x - c.x)*(point.y - c.y)) / denominator;
-		double f:Number = 1 - a - b;
+		double f = 1 - a - b;
 
 		return 0 <= d && d <= 1 && 0 <= e && e <= 1 && 0 <= f && f <= 1;
 	}
