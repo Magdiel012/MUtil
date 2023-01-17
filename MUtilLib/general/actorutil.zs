@@ -2,6 +2,15 @@
 class ActorUtil
 {
 	/**
+	 * Convenience method for calling Actor.PitchTo() with offsets set to the vertical
+	 * centers of the given actors.
+	**/
+	static double PitchTo(Actor this, Actor other, bool absolute = false, bool centerHeight = true)
+	{
+		return this.PitchTo(other, (centerHeight ? this.Height / 2.0 : 0.0), (centerHeight ? other.Height / 2.0 : 0.0), absolute);
+	}
+
+	/**
 	 * Convenience method for calling LevelUtil.Explode3D using an Actor as a source.
 	 * See LevelUtil.Explode3D for parameter info.
 	**/
