@@ -11,25 +11,26 @@ class SectorTriangulation
 	static SectorTriangulation Create(Sector sec)
 	{
 		array<SectorShape> trees;
+
 		array<Line> lines;
 		lines.Copy(sec.lines);
-		BuildShapeTrees(lines, trees);
-		array<SectorShape> flattened;
+		BuildShapeTrees(lines, trees); // Line array retains unprocessed lines.
 
+		array<SectorShape> flattened;
 		for (int i = 0; i < trees.Size(); ++i)
 		{
 			FlattenTree(flattened, trees[i]);
 		}
 
-		array<Polygon> polygons;
-
+		array<SectorPolygon> polygons;
 		for (int i = 0; i < flattened.Size(); ++i)
 		{
-			polygons.Push(Polygon.FromSectorShape(flattened[i]));
+			SectorPolygon poly = SectorPolygon.FromSectorShape(flattened[i]);
+			poly.TakeInternalLines(lines);
+			polygons.Push(poly);
 		}
 
 		array<DelaunayTriangle> triangles;
-
 		for (int i = 0; i < polygons.Size(); ++i)
 		{
 			polygons[i].Triangulate();
@@ -120,14 +121,16 @@ class SectorTriangulation
 		return m_Triangles[i];
 	}
 
-	private static void BuildShapeTrees(array<Line> lines, out array<SectorShape> trees, bool counterClockwise = false)
+	private static void BuildShapeTrees(out array<Line> lines, out array<SectorShape> trees, bool counterClockwise = false)
 	{
 		int recursionCount = 0;
-		SortDebug(recursionCount, lines);
+		SortLinesHorizontally(recursionCount, lines);
 
 		// Buffers for shape data.
 		array<Vertex> vertexBuffer;
 		array<Line> lineBuffer;
+
+		array<Line> unprocessed;
 
 		Line currentLine = null;
 		Vertex current = null;
@@ -194,11 +197,12 @@ class SectorTriangulation
 					continue;
 				}
 
-				// Ignore internal lines.
+				// Defer internal line processing.
 				if (!!(checkedLine.sidedef[0])
 					&& !!(checkedLine.sidedef[1])
 					&& checkedLine.sidedef[0].sector == checkedLine.sidedef[1].sector)
 				{
+					unprocessed.Push(checkedLine);
 					lines.Delete(i);
 					continue;
 				}
@@ -232,6 +236,8 @@ class SectorTriangulation
 			// A polygon is open, abort.
 			if (!connectionFound) ThrowAbortException("Open polygon detected.");
 		}
+
+		lines.Move(unprocessed);
 	}
 
 	private static void FlattenTree(out array<SectorShape> result, SectorShape shape)
@@ -242,11 +248,6 @@ class SectorTriangulation
 			FlattenTree(result, shape.m_Children[i]);
 			if (!shape.m_Children[i].m_Inner) shape.m_Children.Delete(i);
 		}
-	}
-
-	private static void SortDebug(out int recursionCount, out array<Line> lines)
-	{
-		SortLinesHorizontally(recursionCount, lines);
 	}
 
 	private static void SortLinesHorizontally(out int recursionCount, out array<Line> lines, int left = -1, int right = -1)
@@ -302,6 +303,68 @@ class SectorTriangulation
 		}
 
 		return left;
+	}
+}
+
+class SectorPolygon : Polygon
+{
+	protected array<Line> m_InternalLines;
+
+	static SectorPolygon Create(array<PolygonPoint> points, array<Line> internalLines = null)
+	{
+		SectorPolygon poly = new("SectorPolygon");
+		int count = points.Size();
+		if (count < 3) ThrowAbortException("Point array has fewer than 3 points.");
+		if (points[0].Equals(points[count - 1])) points.Delete(count - 1);
+
+		for (int i = 0; i < count; ++i)
+		{
+			poly.m_Points.Push(points[i]);
+		}
+
+		if (internalLines) poly.m_InternalLines.Move(internalLines);
+		return poly;
+	}
+
+	void TakeInternalLines(out array<Line> lines)
+	{
+		array<Edge> edges;
+		for (int i = 0; i < m_Points.Size() - 1; ++i)
+		{
+			edges.Push(Edge.Create(m_Points[i].ToVector2(), mPoints[i + 1].ToVector2()))
+		}
+		edges.Push(Edge.Create(m_Points[m_Points.Size() - 1].ToVector2(), m_Points[0].ToVector2()));
+
+		for (int i = lines.Size(); i >= 0; --i)
+		{
+			if (IsPointInPolygon(lines[i].v1.p, edges) && IsPointInPolygon(lines[i].v2.p, edges))
+			{
+				m_InternalLines.Push(lines[i]);
+				lines.Delete(i);
+			}
+		}
+	}
+
+	override void Prepare(DTSweepContext tcx)
+	{
+		foreach (line : m_InternalLines)
+		{
+			DTSweepContext.NewConstraint(line.v1, line.v2);
+
+			// Ensure duplicate points aren't added.
+			bool v1Added, v2Added;
+			for (point : tcx.m_Points)
+			{
+				v1Added = point.m_X ~== line.v1.p.x && point.m_Y ~== line.v1.p.y;
+				v2Added = point.m_X ~== line.v2.p.x && point.m_Y ~== line.v2.p.y;
+			}
+
+			if (!v1Added) tcx.m_Points.Append(TriangulationPoint.FromVertex(line.v1));
+			if (!v2Added) tcx.m_Points.Append(TriangulationPoint.FromVertex(line.v2));
+		}
+
+		// Internal lines are added first so ShiftCollinearPoints() can account for them.
+		Super.Prepare(tcx);
 	}
 }
 

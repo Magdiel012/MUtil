@@ -779,6 +779,7 @@ class MathVec3
 /** Contains several geometry-related utilities. **/
 class Geometry
 {
+	const GEOMETRY_EPSILON = 0.00001;
 	/**
 	 * Returns the bounding box of a shape, where the first value is the
 	 * bottom-left corner and the second value is the top-right corner.
@@ -832,6 +833,29 @@ class Geometry
 	}
 
 	/**
+	 * Returns whether or not the given point is on the line segment defined by the given
+	 * start and end points.
+	**/
+	bool IsPointOnLine(vector2 point, vector2 start, vector2 end)
+	{
+		double a = (end.y - start.y) / (end.x - end.x);
+		double b = start.y - a * start.x;
+		if (abs(point.y - (a * point.x + b)) < GEOMETRY_EPSILON)
+		{
+			array<BoxedVector2> linePoints;
+			linePoints.Push(start);
+			linePoints.Push(end);
+
+			vector2 boundsBottomLeft, boundsTopRight;
+			[boundsBottomLeft, boundsTopRight] = GetBoundingBox(linePoints);
+			
+			if (IsPointInBounds(point, boundsBottomLeft, boundsBottomRight)) return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns whether or not the given point is within the given shape, where the shape
 	 * is given as an array of edges (lines).
 	 *
@@ -839,7 +863,7 @@ class Geometry
 	 *		The edges must form a simple polygon, or in other words, a closed shape with
 	 *		no intersecting edges.
 	**/
-	static bool IsPointInPolygon(vector2 point, array<Edge> shape)
+	static bool IsPointInPolygon(vector2 point, array<Edge> shape, bool pointOnEdgeIsInside = true)
 	{
 		array<BoxedVector2> vertices;
 
@@ -858,6 +882,8 @@ class Geometry
 		for (int i = 0; i < shape.Size(); ++i)
 		{
 			Edge line = shape[i];
+
+			if (pointOnEdgeIsInside && IsPointOnLine(point, line.m_V1, line.m_V2)) return true;
 
 			if ((line.m_V1.y <= point.y) && (line.m_V2.y > point.y)
 				|| (line.m_V2.y <= point.y) && (line.m_V1.y > point.y))

@@ -144,7 +144,7 @@ class TriangulationPoint
 
 class TriangulationUtil
 {
-	const EPSILON = 0.0000001;
+	const EPSILON = 0.00001;
 
 	static bool SmartInCircle(TriangulationPoint pa, TriangulationPoint pb, TriangulationPoint pc, TriangulationPoint pd)
 	{
@@ -228,12 +228,12 @@ class TriangulationUtil
 		return ORI_CW;
 	}
 
-	static TriangulationPoint ToTriangulationPoint(Vector2 v)
+	static TriangulationPoint ToTriangulationPoint(vector2 v)
 	{
 		return TriangulationPoint.Create(v.x, v.y);
 	}
 
-	static PolygonPoint ToPolygonPoint(Vector2 v)
+	static PolygonPoint ToPolygonPoint(vector2 v)
 	{
 		return PolygonPoint.Create(v.x, v.y);
 	}
@@ -467,7 +467,7 @@ class Polygon : Triangulatable
 		ShiftCollinearPoints();
 
 		// Outer constraints
-		for (int i = 0; i < count - 1; i++)
+		for (int i = 0; i < count - 1; ++i)
 		{
 			DTSweepContext.NewConstraint(m_Points[i], m_Points[i + 1]);
 		}
@@ -479,7 +479,7 @@ class Polygon : Triangulatable
 		{
 			Polygon p = m_Holes[i];
 			int holeCount = p.m_Points.Size();
-			for (int i = 0; i < holeCount - 1; i++)
+			for (int i = 0; i < holeCount - 1; ++i)
 			{
 				DTSweepContext.NewConstraint(p.m_Points[i], p.m_Points[i + 1]);
 			}
@@ -501,8 +501,8 @@ class Polygon : Triangulatable
 
 			if (TriangulationUtil.Orient2d(a, b, c) == ORI_Collinear)
 			{
-				b.m_X += TriangulationUtil.EPSILON * 2;
-				b.m_Y += TriangulationUtil.EPSILON * 2;
+				b.m_X += TriangulationUtil.EPSILON;
+				b.m_Y += TriangulationUtil.EPSILON;
 			}
 		}
 	}
