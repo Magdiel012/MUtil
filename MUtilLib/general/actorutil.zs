@@ -74,7 +74,6 @@ class ActorUtil
 			difference = level.Vec2Diff(virtualPos, newpos))
 		{
 			vector2 step = difference.Unit() * this.Radius;
-			Console.Printf("Step: "..ToStr.Vec2(step));
 
 			if (!this.CheckMove(virtualPos + step, flags, tm)) return false;
 
