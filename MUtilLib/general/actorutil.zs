@@ -66,7 +66,7 @@ class ActorUtil
 	**/
 	static play bool CheckWalk(Actor this, vector2 newpos, int flags = 0, FCheckPosition tm = null)
 	{
-		vector3 virtualPos = this.Pos.xy;
+		vector2 virtualPos = this.Pos.xy;
 
 		// Iterate until virtualPos is within +-radius of newpos.
 		for (vector2 difference = level.Vec2Diff(virtualPos, newpos);
