@@ -372,7 +372,7 @@ class SectorPolygon : Polygon
 
 		ShiftCollinearPoints();
 
-		// Outer constraints
+		// Outer constraints.
 		for (int i = 0; i < count - 1; ++i)
 		{
 			DTSweepContext.NewConstraint(m_Points[i], m_Points[i + 1]);
@@ -380,37 +380,45 @@ class SectorPolygon : Polygon
 		DTSweepContext.NewConstraint(m_Points[0], m_Points[count - 1]);
 		tcx.m_Points.Append(m_Points);
 
-		// Hole constraints
-		for(int i = 0; i < m_Holes.Size(); ++i)
+		// Hole constraints.
+		foreach (hole : m_Holes)
 		{
-			Polygon p = m_Holes[i];
-			int holeCount = p.m_Points.Size();
+			int holeCount = hole.m_Points.Size();
 			for (int i = 0; i < holeCount - 1; ++i)
 			{
-				DTSweepContext.NewConstraint(p.m_Points[i], p.m_Points[i + 1]);
+				DTSweepContext.NewConstraint(hole.m_Points[i], hole.m_Points[i + 1]);
 			}
-			DTSweepContext.NewConstraint(p.m_Points[0], p.m_Points[holeCount - 1]);
-			tcx.m_Points.Append(p.m_Points);
+			DTSweepContext.NewConstraint(hole.m_Points[0], hole.m_Points[holeCount - 1]);
+			tcx.m_Points.Append(hole.m_Points);
 		}
 
 		tcx.m_Points.Append(m_SteinerPoints);
 
-		// Internal line constraints
+		// Internal line constraints.
 		array<TriangulationPoint> linePoints;
 		foreach (l : m_InternalLines)
 		{
-			DTSweepContext.NewConstraint(l.v1, l.v2);
-
 			// Ensure duplicate points aren't added.
-			bool v1Added, v2Added;
+			TriangulationPoint v1, v2;
 			foreach (point : linePoints)
 			{
-				v1Added = point.m_X ~== l.v1.p.x && point.m_Y ~== l.v1.p.y;
-				v2Added = point.m_X ~== l.v2.p.x && point.m_Y ~== l.v2.p.y;
+				if (point.m_X ~== l.v1.p.x && point.m_Y ~== l.v1.p.y)
+				{
+					v1 = point;
+				}
+				else if (point.m_X ~== l.v2.p.x && point.m_Y ~== l.v2.p.y)
+				{
+					v2 = point;
+				}
 			}
 
-			if (!v1Added) linePoints.Push(TriangulationPoint.FromVertex(l.v1));
-			if (!v2Added) linePoints.Push(TriangulationPoint.FromVertex(l.v2));
+			if (!v1) v1 = TriangulationPoint.FromVertex(l.v1);
+			if (!v2) v2 = TriangulationPoint.FromVertex(l.v2);
+
+			DTSweepContext.NewConstraint(v1, v2);
+
+			linePoints.Push(v1);
+			linePoints.Push(v2);
 		}
 
 		// Shift collinear points.
@@ -430,17 +438,28 @@ class SectorPolygon : Polygon
 		// Ensure duplicate points aren't added.
 		foreach(linePoint : linePoints)
 		{
-			bool pointFound = false;
+			TriangulationPoint existingPoint;
 			foreach (point : tcx.m_Points)
 			{
-				if (point.m_X ~== linePoint.m_X && point.m_Y ~== linePoint.m_Y)
+				if (point.Equals(linePoint))
 				{
-					pointFound = true;
+					duplicate = point;
 					break;
 				}
 			}
 
-			if (!pointFound) tcx.m_Points.Push(TriangulationPoint.FromVertex(linePoint));
+			if (existingPoint)
+			{
+				// Merge constraints between duplicates.
+				foreach (constraint : linePoint.m_Edges)
+				{
+					existingPoint.AddEdge(constraint);
+				}
+			}
+			else
+			{
+				tcx.m_Points.Push(TriangulationPoint.FromVertex(linePoint));
+			}
 		}
 	}
 }
