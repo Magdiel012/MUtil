@@ -836,15 +836,15 @@ class Geometry
 	 * Returns whether or not the given point is on the line segment defined by the given
 	 * start and end points.
 	**/
-	bool IsPointOnLine(vector2 point, vector2 start, vector2 end)
+	static bool IsPointOnLine(vector2 point, vector2 start, vector2 end)
 	{
 		double a = (end.y - start.y) / (end.x - end.x);
 		double b = start.y - a * start.x;
 		if (abs(point.y - (a * point.x + b)) < GEOMETRY_EPSILON)
 		{
 			array<BoxedVector2> linePoints;
-			linePoints.Push(start);
-			linePoints.Push(end);
+			linePoints.Push(BoxedVector2.Create(start));
+			linePoints.Push(BoxedVector2.Create(end));
 
 			vector2 boundsBottomLeft, boundsTopRight;
 			[boundsBottomLeft, boundsTopRight] = GetBoundingBox(linePoints);

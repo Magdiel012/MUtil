@@ -326,18 +326,38 @@ class SectorPolygon : Polygon
 		return poly;
 	}
 
+	static SectorPolygon FromSectorShape(SectorShape shape)
+	{
+		array<PolygonPoint> points;
+
+		for (int i = 0; i < shape.m_Points.Size(); ++i)
+		{
+			points.Push(PolygonPoint.FromVertex(shape.m_Points[i]));
+		}
+
+		SectorPolygon poly = SectorPolygon.Create(points);
+		if (shape.m_Inner) return poly;
+
+		for (int i = 0; i < shape.m_Children.Size(); ++i)
+		{
+			poly.AddHole(SectorPolygon.FromSectorShape(shape.m_Children[i]));
+		}
+
+		return poly;
+	}
+
 	void TakeInternalLines(out array<Line> lines)
 	{
 		array<Edge> edges;
 		for (int i = 0; i < m_Points.Size() - 1; ++i)
 		{
-			edges.Push(Edge.Create(m_Points[i].ToVector2(), mPoints[i + 1].ToVector2()));
+			edges.Push(Edge.Create(m_Points[i].ToVector2(), m_Points[i + 1].ToVector2()));
 		}
 		edges.Push(Edge.Create(m_Points[m_Points.Size() - 1].ToVector2(), m_Points[0].ToVector2()));
 
 		for (int i = lines.Size(); i >= 0; --i)
 		{
-			if (IsPointInPolygon(lines[i].v1.p, edges) && IsPointInPolygon(lines[i].v2.p, edges))
+			if (Geometry.IsPointInPolygon(lines[i].v1.p, edges) && Geometry.IsPointInPolygon(lines[i].v2.p, edges))
 			{
 				m_InternalLines.Push(lines[i]);
 				lines.Delete(i);
@@ -377,7 +397,7 @@ class SectorPolygon : Polygon
 
 		// Internal line constraints
 		array<TriangulationPoint> linePoints;
-		foreach (line : m_InternalLines)
+		foreach (l : m_InternalLines)
 		{
 			DTSweepContext.NewConstraint(line.v1, line.v2);
 
@@ -385,8 +405,8 @@ class SectorPolygon : Polygon
 			bool v1Added, v2Added;
 			foreach (point : linePoints)
 			{
-				v1Added = point.m_X ~== line.v1.p.x && point.m_Y ~== line.v1.p.y;
-				v2Added = point.m_X ~== line.v2.p.x && point.m_Y ~== line.v2.p.y;
+				v1Added = point.m_X ~== l.v1.p.x && point.m_Y ~== l.v1.p.y;
+				v2Added = point.m_X ~== l.v2.p.x && point.m_Y ~== l.v2.p.y;
 			}
 
 			if (!v1Added) linePoints.Push(TriangulationPoint.FromVertex(line.v1));
@@ -397,8 +417,8 @@ class SectorPolygon : Polygon
 		for (int i = 0; i < linePoints.Size() - 2; ++i)
 		{
 			TriangulationPoint a = linePoints[i];
-			TriangulationPoint b = linePoints[(i + 1) % count];
-			TriangulationPoint c = linePoints[(i + 2) % count];
+			TriangulationPoint b = linePoints[(i + 1)];
+			TriangulationPoint c = linePoints[(i + 2)];
 
 			if (TriangulationUtil.Orient2d(a, b, c) == ORI_Collinear)
 			{
@@ -408,17 +428,15 @@ class SectorPolygon : Polygon
 		}
 
 		// Ensure duplicate points aren't added.
-		foreach(point : linePoints)
+		foreach(linePoint : linePoints)
 		{
-			bool v1Added, v2Added;
+			bool pointFound;
 			foreach (point : tcx.m_Points)
 			{
-				v1Added = point.m_X ~== line.v1.p.x && point.m_Y ~== line.v1.p.y;
-				v2Added = point.m_X ~== line.v2.p.x && point.m_Y ~== line.v2.p.y;
+				pointFound = point.m_X ~== linePoint.m_X && point.m_Y ~== linePoint.m_Y;
 			}
 
-			if (!v1Added) tcx.m_Points.Push(TriangulationPoint.FromVertex(line.v1));
-			if (!v2Added) tcx.m_Points.Push(TriangulationPoint.FromVertex(line.v2));
+			if (!pointFound) tcx.m_Points.Push(TriangulationPoint.FromVertex(linePoint));
 		}
 	}
 }

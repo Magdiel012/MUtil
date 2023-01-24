@@ -82,14 +82,7 @@ class Vec2Util
 	static vector3 _YX(vector2 v) { return (0.0, v.y, v.y); }
 
 	/** Returns the given vector with all components set to their absolute value. **/
-	static vector2 Abs(vector2 v)
-	{
-		double absX = v.x;
-		double absY = v.y;
-		absX = abs(absX);
-		absY = abs(absY);
-		return (absX, absY);
-	}
+	static vector2 AbsV(vector2 v) { return (abs(v.x), abs(v.y)); }
 
 	/** Returns a vector with random values from min X and Y to max X and Y. **/
 	static vector2 Random(double minX, double maxX, double minY, double maxY)
@@ -293,7 +286,7 @@ class Vec3Util
 	static vector3 _ZZ(vector3 v) { return (0.0, v.z, v.z); }
 
 	/** Returns the given vector with all components set to their absolute value. **/
-	static vector3 Abs(vector3 v) { return (abs(v.x), abs(v.y), abs(v.z)); }
+	static vector3 AbsV(vector3 v) { return (abs(v.x), abs(v.y), abs(v.z)); }
 
 	/** Returns a vector with random values from min X, Y, and Z to max X, Y, and Z. **/
 	static vector3 Random(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
@@ -321,7 +314,7 @@ class Vec3Util
 class Vec4Util
 {
 	/** Returns the given vector with all components set to their absolute value. **/
-	static vector4 Abs(vector4 v) { return (abs(v.x), abs(v.y), abs(v.z), abs(v.w)); }
+	static vector4 AbsV(vector4 v) { return (abs(v.x), abs(v.y), abs(v.z), abs(v.w)); }
 
 	/** Returns a vector4 with random values from min X, Y, Z, and W to max X, Y, Z, and W. **/
 	static vector4 Random(double minX, double maxX, double minY, double maxY, double minZ, double maxZ, double minW, double maxW)
