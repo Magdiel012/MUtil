@@ -85,6 +85,10 @@ class Vec2Util
 	static vector2 Abs(vector2 v)
 	{
 		double absX = v.x;
+		double absY = v.y;
+		absX = abs(absX);
+		absY = abs(absY);
+		return (absX, absY);
 	}
 
 	/** Returns a vector with random values from min X and Y to max X and Y. **/
