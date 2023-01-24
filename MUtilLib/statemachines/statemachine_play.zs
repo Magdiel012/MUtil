@@ -420,7 +420,7 @@ class SMStatePlay play
 	}
 	private bool TryPerformTransition(name eventId)
 	{
-		for (uint i = 0u; i < m_Transitions.Size(); ++i)
+		for (int i = 0; i < m_Transitions.Size(); ++i)
 		{
 			SMTransitionPlay transition = m_Transitions[i];
 			if (transition.GetEventID() == eventId
