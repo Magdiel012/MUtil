@@ -849,7 +849,7 @@ class Geometry
 			vector2 boundsBottomLeft, boundsTopRight;
 			[boundsBottomLeft, boundsTopRight] = GetBoundingBox(linePoints);
 			
-			if (IsPointInBounds(point, boundsBottomLeft, boundsBottomRight)) return true;
+			if (IsPointInBounds(point, boundsBottomLeft, boundsTopRight)) return true;
 		}
 
 		return false;

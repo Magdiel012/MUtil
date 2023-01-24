@@ -399,7 +399,7 @@ class SectorPolygon : Polygon
 		array<TriangulationPoint> linePoints;
 		foreach (l : m_InternalLines)
 		{
-			DTSweepContext.NewConstraint(line.v1, line.v2);
+			DTSweepContext.NewConstraint(l.v1, l.v2);
 
 			// Ensure duplicate points aren't added.
 			bool v1Added, v2Added;
@@ -409,8 +409,8 @@ class SectorPolygon : Polygon
 				v2Added = point.m_X ~== l.v2.p.x && point.m_Y ~== l.v2.p.y;
 			}
 
-			if (!v1Added) linePoints.Push(TriangulationPoint.FromVertex(line.v1));
-			if (!v2Added) linePoints.Push(TriangulationPoint.FromVertex(line.v2));
+			if (!v1Added) linePoints.Push(TriangulationPoint.FromVertex(l.v1));
+			if (!v2Added) linePoints.Push(TriangulationPoint.FromVertex(l.v2));
 		}
 
 		// Shift collinear points.
@@ -430,10 +430,14 @@ class SectorPolygon : Polygon
 		// Ensure duplicate points aren't added.
 		foreach(linePoint : linePoints)
 		{
-			bool pointFound;
+			bool pointFound = false;
 			foreach (point : tcx.m_Points)
 			{
-				pointFound = point.m_X ~== linePoint.m_X && point.m_Y ~== linePoint.m_Y;
+				if (point.m_X ~== linePoint.m_X && point.m_Y ~== linePoint.m_Y)
+				{
+					pointFound = true;
+					break;
+				}
 			}
 
 			if (!pointFound) tcx.m_Points.Push(TriangulationPoint.FromVertex(linePoint));
