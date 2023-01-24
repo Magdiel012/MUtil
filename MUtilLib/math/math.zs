@@ -499,6 +499,17 @@ class MathVec2
 		return vector = (vector.x * (targetLength / length), vector.y * (targetLength / length));
 	}
 
+	
+	/**
+	 * Linearly interpolates between the given start and end values by the given step
+	 * value, where a step of 0.5 would yield the midpoint between the start and end
+	 * values.
+	**/
+	static vector2 Lerp(vector2 start, vector2 end, double step)
+	{
+		return (Math.Lerp(start.x, end.x, step), Math.Lerp(start.y, end.y, step));
+	}
+
 	/** Returns the distance between the given vectors. **/
 	static double DistanceBetween(vector2 a, vector2 b)
 	{
@@ -643,6 +654,16 @@ class MathVec3
 		}
 
 		return vector = (vector.x * (targetLength / length), vector.y * (targetLength / length), vector.z * (targetLength / length));
+	}
+
+	/**
+	 * Linearly interpolates between the given start and end values by the given step
+	 * value, where a step of 0.5 would yield the midpoint between the start and end
+	 * values.
+	**/
+	static vector3 Lerp(vector3 start, vector3 end, double step)
+	{
+		return (Math.Lerp(start.x, end.x, step), Math.Lerp(start.y, end.y, step), Math.Lerp(start.z, end.z, step));
 	}
 
 	/** Returns the distance between the given vectors. **/
