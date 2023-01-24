@@ -84,8 +84,9 @@ class Vec2Util
 	/** Returns the given vector with all components set to their absolute value. **/
 	static vector2 Abs(vector2 v)
 	{
-		vector2 result = (abs(v.x), abs(v.y));
-		return result;
+		v.x = abs(v.x);
+		v.y = abs(v.y);
+		return v;
 	}
 
 	/** Returns a vector with random values from min X and Y to max X and Y. **/
