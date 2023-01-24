@@ -443,7 +443,7 @@ class SectorPolygon : Polygon
 			{
 				if (point.Equals(linePoint))
 				{
-					duplicate = point;
+					existingPoint = point;
 					break;
 				}
 			}
@@ -458,7 +458,7 @@ class SectorPolygon : Polygon
 			}
 			else
 			{
-				tcx.m_Points.Push(TriangulationPoint.FromVertex(linePoint));
+				tcx.m_Points.Push(linePoint);
 			}
 		}
 	}
