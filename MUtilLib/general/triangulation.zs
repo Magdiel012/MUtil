@@ -490,7 +490,7 @@ class Polygon : Triangulatable
 		tcx.m_Points.Append(m_SteinerPoints);
 	}
 
-	private void ShiftCollinearPoints()
+	protected void ShiftCollinearPoints()
 	{
 		int count = m_Points.Size();
 		for (int i = 0; i < count; ++i)

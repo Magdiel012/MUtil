@@ -331,7 +331,7 @@ class SectorPolygon : Polygon
 		array<Edge> edges;
 		for (int i = 0; i < m_Points.Size() - 1; ++i)
 		{
-			edges.Push(Edge.Create(m_Points[i].ToVector2(), mPoints[i + 1].ToVector2()))
+			edges.Push(Edge.Create(m_Points[i].ToVector2(), mPoints[i + 1].ToVector2()));
 		}
 		edges.Push(Edge.Create(m_Points[m_Points.Size() - 1].ToVector2(), m_Points[0].ToVector2()));
 
@@ -347,24 +347,79 @@ class SectorPolygon : Polygon
 
 	override void Prepare(DTSweepContext tcx)
 	{
+		m_Triangles.Clear();
+		int count = m_Points.Size();
+
+		ShiftCollinearPoints();
+
+		// Outer constraints
+		for (int i = 0; i < count - 1; ++i)
+		{
+			DTSweepContext.NewConstraint(m_Points[i], m_Points[i + 1]);
+		}
+		DTSweepContext.NewConstraint(m_Points[0], m_Points[count - 1]);
+		tcx.m_Points.Append(m_Points);
+
+		// Hole constraints
+		for(int i = 0; i < m_Holes.Size(); ++i)
+		{
+			Polygon p = m_Holes[i];
+			int holeCount = p.m_Points.Size();
+			for (int i = 0; i < holeCount - 1; ++i)
+			{
+				DTSweepContext.NewConstraint(p.m_Points[i], p.m_Points[i + 1]);
+			}
+			DTSweepContext.NewConstraint(p.m_Points[0], p.m_Points[holeCount - 1]);
+			tcx.m_Points.Append(p.m_Points);
+		}
+
+		tcx.m_Points.Append(m_SteinerPoints);
+
+		// Internal line constraints
+		array<TriangulationPoint> linePoints;
 		foreach (line : m_InternalLines)
 		{
 			DTSweepContext.NewConstraint(line.v1, line.v2);
 
 			// Ensure duplicate points aren't added.
 			bool v1Added, v2Added;
-			for (point : tcx.m_Points)
+			foreach (point : linePoints)
 			{
 				v1Added = point.m_X ~== line.v1.p.x && point.m_Y ~== line.v1.p.y;
 				v2Added = point.m_X ~== line.v2.p.x && point.m_Y ~== line.v2.p.y;
 			}
 
-			if (!v1Added) tcx.m_Points.Append(TriangulationPoint.FromVertex(line.v1));
-			if (!v2Added) tcx.m_Points.Append(TriangulationPoint.FromVertex(line.v2));
+			if (!v1Added) linePoints.Push(TriangulationPoint.FromVertex(line.v1));
+			if (!v2Added) linePoints.Push(TriangulationPoint.FromVertex(line.v2));
 		}
 
-		// Internal lines are added first so ShiftCollinearPoints() can account for them.
-		Super.Prepare(tcx);
+		// Shift collinear points.
+		for (int i = 0; i < linePoints.Size() - 2; ++i)
+		{
+			TriangulationPoint a = linePoints[i];
+			TriangulationPoint b = linePoints[(i + 1) % count];
+			TriangulationPoint c = linePoints[(i + 2) % count];
+
+			if (TriangulationUtil.Orient2d(a, b, c) == ORI_Collinear)
+			{
+				b.m_X += TriangulationUtil.EPSILON;
+				b.m_Y += TriangulationUtil.EPSILON;
+			}
+		}
+
+		// Ensure duplicate points aren't added.
+		foreach(point : linePoints)
+		{
+			bool v1Added, v2Added;
+			foreach (point : tcx.m_Points)
+			{
+				v1Added = point.m_X ~== line.v1.p.x && point.m_Y ~== line.v1.p.y;
+				v2Added = point.m_X ~== line.v2.p.x && point.m_Y ~== line.v2.p.y;
+			}
+
+			if (!v1Added) tcx.m_Points.Push(TriangulationPoint.FromVertex(line.v1));
+			if (!v2Added) tcx.m_Points.Push(TriangulationPoint.FromVertex(line.v2));
+		}
 	}
 }
 
