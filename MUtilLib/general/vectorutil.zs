@@ -82,7 +82,11 @@ class Vec2Util
 	static vector3 _YX(vector2 v) { return (0.0, v.y, v.y); }
 
 	/** Returns the given vector with all components set to their absolute value. **/
-	static vector2 Abs(vector2 v) { return (abs(v.x), abs(v.y)); }
+	static vector2 Abs(vector2 v)
+	{
+		vector2 result = (abs(v.x), abs(v.y));
+		return result;
+	}
 
 	/** Returns a vector with random values from min X and Y to max X and Y. **/
 	static vector2 Random(double minX, double maxX, double minY, double maxY)
