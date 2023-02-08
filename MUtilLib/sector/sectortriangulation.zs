@@ -10,69 +10,62 @@ class SectorTriangulation
 
 	static SectorTriangulation Create(Sector sec)
 	{
-		array<SectorShape> trees;
-
-		array<Line> lines;
-		lines.Copy(sec.lines);
-		BuildShapeTrees(lines, trees); // Line array retains unprocessed lines.
-
-		array<SectorShape> flattened;
-		for (int i = 0; i < trees.Size(); ++i)
-		{
-			FlattenTree(flattened, trees[i]);
-		}
-
-		array<SectorPolygon> polygons;
-		for (int i = 0; i < flattened.Size(); ++i)
-		{
-			SectorPolygon poly = SectorPolygon.FromSectorShape(flattened[i]);
-			poly.TakeInternalLines(lines);
-			polygons.Push(poly);
-		}
-
-		array<DelaunayTriangle> triangles;
-		for (int i = 0; i < polygons.Size(); ++i)
-		{
-			polygons[i].Triangulate();
-			triangles.Append(polygons[i].m_Triangles);
-		}
-
-		return SectorTriangulation.FromDelaunay(triangles, sec);
-	}
-
-	private static SectorTriangulation FromDelaunay(array<DelaunayTriangle> triangles, Sector sec)
-	{
 		SectorTriangulation triangulation = new("SectorTriangulation");
-
-		// Convert triangles and generate random distribution.
-		for (int i = 0; i < triangles.Size(); ++i)
-		{
-			SectorTriangle secTriangle = SectorTriangle.FromDelaunay(triangles[i], sec);
-			triangulation.m_Area += Geometry.GetTriangleArea(
-				secTriangle.GetPoint(0),
-				secTriangle.GetPoint(1),
-				secTriangle.GetPoint(2));
-
-			triangulation.m_Triangles.Push(secTriangle);
-		}
-
-		for (int i = 0; i < triangulation.m_Triangles.Size(); ++i)
-		{
-			SectorTriangle secTriangle = triangulation.m_Triangles[i];
-			double previous = i > 0 ? triangulation.m_CumulativeDistribution[i - 1] : 0.0;
-			double next = (
-				Geometry.GetTriangleArea(
-					secTriangle.GetPoint(0),
-					secTriangle.GetPoint(1),
-					secTriangle.GetPoint(2))
-				/ triangulation.m_Area) + previous;
-
-			triangulation.m_CumulativeDistribution.Push(next);
-		}
-
 		triangulation.m_Sector = sec;
 
 		return triangulation;
+	}
+
+	static SectorTriangulation TriangulateSector(Sector sec)
+	{
+		// Console.Printf("Triangulating sector %i", sec.Index());
+
+		if (sec.lines.Size() < 2
+			|| DoesSectorGeometryIntersect(sec.lines)
+			|| IsSectorGeometryCollinear(sec.lines))
+		{
+			return null;
+		}
+
+		// Need to approach these differently to avoid obscure triangulator bug.
+		if (!IsSectorGeometryClosed(sec.lines))
+		{
+			// Console.Printf("Sector %i is not closed. Using alternative triangulation method...", sec.Index());
+			return TriangulateNonClosed(sec);
+		}
+		else
+		{
+			array<SectorShape> trees;
+
+			// Certain geometry can throw off the unclosed shape detection.
+			// Check the result of BuildShapeTrees() in case open shapes are caught during tracing.
+			if (!BuildShapeTrees(sec.lines, trees, sec))
+			{
+				return TriangulateNonClosed(sec);
+			}
+
+			array<SectorShape> flattened;
+			for (int i = 0; i < trees.Size(); ++i)
+			{
+				ExtractShapesOrHoles(flattened, trees[i], false);
+			}
+
+			array<Polygon> polygons;
+			for (int i = 0; i < flattened.Size(); ++i)
+			{
+				Polygon poly = Polygon.FromSectorShape(flattened[i]);
+				polygons.Push(poly);
+			}
+
+			array<DelaunayTriangle> triangles;
+			for (int i = 0; i < polygons.Size(); ++i)
+			{
+				polygons[i].Triangulate();
+				triangles.Append(polygons[i].m_Triangles);
+			}
+
+			return SectorTriangulation.FromDelaunay(triangles, sec);
+		}
 	}
 
 	/** Returns the SectorTriangle at the given index. **/
@@ -121,8 +114,90 @@ class SectorTriangulation
 		return m_Triangles[i];
 	}
 
-	private static void BuildShapeTrees(out array<Line> lines, out array<SectorShape> trees, bool counterClockwise = false)
+	void AddTriangle(DelaunayTriangle triangle)
 	{
+		m_Triangles.Push(SectorTriangle.FromDelaunay(triangle, m_Sector));
+	}
+
+	void RecalculateArea()
+	{
+		m_Area = 0.0;
+
+		// Calculate area.
+		foreach (secTriangle : m_Triangles)
+		{
+			m_Area += Geometry.GetTriangleArea(
+				secTriangle.GetPoint(0),
+				secTriangle.GetPoint(1),
+				secTriangle.GetPoint(2));
+		}
+	}
+
+	void RecalculateDistribution()
+	{
+		for (int i = 0; i < m_Triangles.Size(); ++i)
+		{
+			SectorTriangle secTriangle = m_Triangles[i];
+			double previous = i > 0 ? m_CumulativeDistribution[i - 1] : 0.0;
+			double next = (
+				Geometry.GetTriangleArea(
+					secTriangle.GetPoint(0),
+					secTriangle.GetPoint(1),
+					secTriangle.GetPoint(2))
+				/ m_Area) + previous;
+
+			m_CumulativeDistribution.Push(next);
+		}
+	}
+
+	private static SectorTriangulation FromDelaunay(array<DelaunayTriangle> triangles, Sector sec)
+	{
+		if (triangles.Size() == 0) return null;
+
+		SectorTriangulation triangulation = new("SectorTriangulation");
+
+		triangulation.m_Sector = sec;
+
+		// Convert triangles.
+		for (int i = 0; i < triangles.Size(); ++i)
+		{
+			if (level.PointInSector(triangles[i].Centroid().ToVector2()) != sec) continue;
+			SectorTriangle secTriangle = SectorTriangle.FromDelaunay(triangles[i], sec);
+			triangulation.m_Triangles.Push(secTriangle);
+		}
+
+		// Calculate area.
+		foreach (secTriangle : triangulation.m_Triangles)
+		{
+			triangulation.m_Area += Geometry.GetTriangleArea(
+				secTriangle.GetPoint(0),
+				secTriangle.GetPoint(1),
+				secTriangle.GetPoint(2));
+		}
+
+		// Calculate cumulative distribution.
+		for (int i = 0; i < triangulation.m_Triangles.Size(); ++i)
+		{
+			SectorTriangle secTriangle = triangulation.m_Triangles[i];
+			double previous = i > 0 ? triangulation.m_CumulativeDistribution[i - 1] : 0.0;
+			double next = (
+				Geometry.GetTriangleArea(
+					secTriangle.GetPoint(0),
+					secTriangle.GetPoint(1),
+					secTriangle.GetPoint(2))
+				/ triangulation.m_Area) + previous;
+
+			triangulation.m_CumulativeDistribution.Push(next);
+		}
+
+		return triangulation;
+	}
+
+	private static bool BuildShapeTrees(array<Line> sectorLines, out array<SectorShape> trees, Sector sec)
+	{
+		array<Line> lines;
+		lines.Copy(sectorLines);
+
 		int recursionCount = 0;
 		SortLinesHorizontally(recursionCount, lines);
 
@@ -130,10 +205,12 @@ class SectorTriangulation
 		array<Vertex> vertexBuffer;
 		array<Line> lineBuffer;
 
-		array<Line> unprocessed;
-
 		Line currentLine = null;
 		Vertex current = null;
+
+		bool hasInternal = false;
+
+		currentLine = lines[0];
 
 		// Sweep until all lines are accounted for.
 		while (lines.Size() > 0 || vertexBuffer.Size() > 0)
@@ -145,31 +222,33 @@ class SectorTriangulation
 				lines.Delete(0);
 				lineBuffer.Push(currentLine);
 
-				if (counterClockwise)
+				if (currentLine.v1.p.x > currentLine.v2.p.x)
 				{
-					vertexBuffer.Push(currentLine.v1);
-					current = currentLine.v2;
+					current = currentLine.v1;
+					vertexBuffer.Push(currentLine.v2);
 				}
 				else
 				{
-					vertexBuffer.Push(currentLine.v2);
-					current = currentLine.v1;
+					current = currentLine.v2;
+					vertexBuffer.Push(currentLine.v1);
 				}
 			}
 
 			bool connectionFound = false;
 
 			// Check if any vertex on the current line connects back to the start.
-			if (current.p ~== vertexBuffer[0].p)
+			if (current == vertexBuffer[0])
 			{
 				// Found a polygon.
-				SectorShape node = SectorShape.Create(vertexBuffer, lineBuffer);
+				SectorShape node = SectorShape.Create(vertexBuffer, lineBuffer, sec);
+
+				if (!node) return false;
 
 				// Try to nest child.
 				bool nested = false;
 				for (int i = 0; i < trees.Size(); ++i)
 				{
-					nested = trees[i].TryAddChild(node);
+					nested = trees[i].TryAddChild(node, hasInternal);
 
 					if (nested) break;
 				}
@@ -183,6 +262,7 @@ class SectorTriangulation
 
 				vertexBuffer.Clear();
 				lineBuffer.Clear();
+				hasInternal = false;
 				continue;
 			}
 
@@ -191,32 +271,29 @@ class SectorTriangulation
 				Line checkedLine = lines[i];
 
 				// Ignore the current line.
-				if (checkedLine.v1.p ~== currentLine.v1.p
-					&& checkedLine.v2.p ~== currentLine.v2.p)
+				if (checkedLine.v1 == currentLine.v1
+					&& checkedLine.v2 == currentLine.v2)
 				{
 					continue;
 				}
 
-				// Defer internal line processing.
-				if (!!(checkedLine.sidedef[0])
-					&& !!(checkedLine.sidedef[1])
+				// Mark internal lines.
+				if (!!checkedLine.sidedef[0] && !!checkedLine.sidedef[1]
 					&& checkedLine.sidedef[0].sector == checkedLine.sidedef[1].sector)
 				{
-					unprocessed.Push(checkedLine);
-					lines.Delete(i);
-					continue;
+					hasInternal = true;
 				}
 
 				bool connected = false;
 
 				// Check if any vertex on the checked line connects to the current line.
-				if (current.p ~== checkedLine.v1.p)
+				if (current == checkedLine.v1)
 				{
 					current = checkedLine.v2;
 					vertexBuffer.Push(checkedLine.v1);
 					connected = true;
 				}
-				else if (current.p ~== checkedLine.v2.p)
+				else if (current == checkedLine.v2)
 				{
 					current = checkedLine.v1;
 					vertexBuffer.Push(checkedLine.v2);
@@ -233,21 +310,271 @@ class SectorTriangulation
 				}
 			}
 
-			// A polygon is open, abort.
-			if (!connectionFound) ThrowAbortException("Open polygon detected.");
+			// A polygon is open and wasn't caught in the geometry check, abort.
+			if (!connectionFound)
+			{
+				return false;
+			}
 		}
 
-		lines.Move(unprocessed);
+		// Console.Printf("Sector %i, Root shapes: %i", sec.Index(), trees.Size());
+		return true;
 	}
 
-	private static void FlattenTree(out array<SectorShape> result, SectorShape shape)
+	private static SectorTriangulation TriangulateNonClosed(Sector sec)
 	{
-		if (!shape.m_Inner) result.Push(shape);
+		array<BoxedVector2> vectors;
+		GetUniquePoints(sec.lines, vectors);
+
+		array<Edge> edges;
+		Edge.LinesToEdges(sec.lines, edges);
+
+		array<int> edgePairs;
+		FindEdgeIndices(vectors, edges, edgePairs);
+
+		array<TriangulationPoint> triangulationPoints;
+		TriangulationUtil.Vector2sToTriangulationPoints(vectors, triangulationPoints);
+
+		ConstrainedPointSet pointSet = ConstrainedPointSet.Create(triangulationPoints, edgePairs);
+		pointSet.Triangulate();
+
+		SectorTriangulation triangulation = SectorTriangulation.FromDelaunay(pointSet.m_Triangles, sec);
+
+		return triangulation;
+	}
+
+	private static bool IsSectorGeometryClosed(array<Line> lines)
+	{
+		Line currentLine = null;
+
+		array<Vertex> vertices;
+		LevelUtil.GetUniqueVertices(lines, vertices);
+
+		foreach (v : vertices)
+		{
+			array<Line> connectedLines;
+			foreach (l : lines)
+			{
+				if (l.v1 == v || l.v2 == v) connectedLines.Push(l);
+			}
+
+			// In any closed shape, each vertex should connect exactly two lines.
+			if (connectedLines.Size() != 2) return false;
+		}
+
+		return true;
+	}
+
+	private static bool DoesSectorGeometryIntersect(array<Line> lines)
+	{
+		foreach (e : lines)
+		{
+			foreach (f : lines)
+			{
+				if (e == f) continue;
+
+				if ((e.v1 == f.v1 && e.v2 == f.v2) || (e.v1 == f.v2 && e.v2 == f.v1))
+				{
+					Console.Printf("Line %i overlaps line %i.", e.Index(), f.Index());
+					return true;
+				}
+
+				if (Geometry.LinesIntersect(e.v1.p, e.v2.p, f.v1.p, f.v2.p))
+				{
+					// Check for touching ends false positives.
+					vector2 fv1 = f.v1.p + (Geometry.EPSILON, Geometry.EPSILON);
+					vector2 fv2 = f.v2.p + (Geometry.EPSILON, Geometry.EPSILON);
+					if (!Geometry.LinesIntersect(e.v1.p, e.v2.p, fv1, fv2)) continue;
+
+					fv1 = f.v1.p - (Geometry.EPSILON, Geometry.EPSILON);
+					fv2 = f.v2.p - (Geometry.EPSILON, Geometry.EPSILON);
+					if (!Geometry.LinesIntersect(e.v1.p, e.v2.p, fv1, fv2)) continue;
+
+					Console.Printf("Line %i intersects line %i.", e.Index(), f.Index());
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static bool IsSectorGeometryCollinear(array<Line> lines)
+	{
+		double previousAngle = vectorangle(lines[0].delta.x, lines[0].delta.y);
+
+		foreach (l : lines)
+		{
+			double angle = vectorangle(l.delta.x, l.delta.y);
+			if (angle ~== previousAngle || (angle + 180.0) % 360.0 ~== previousAngle)
+			{
+				previousAngle = angle;
+				continue;
+			}
+
+			return false;
+		}
+
+		Console.Printf("All sector lines are collinear.");
+		return true;
+	}
+
+	private static void ExtractShapesOrHoles(out array<SectorShape> result, SectorShape shape, bool extractHoles = false)
+	{
+		if (shape.m_Inner == extractHoles) result.Push(shape);
 		for (int i = shape.m_Children.Size() - 1; i >= 0; --i)
 		{
-			FlattenTree(result, shape.m_Children[i]);
-			if (!shape.m_Children[i].m_Inner) shape.m_Children.Delete(i);
+			ExtractShapesOrHoles(result, shape.m_Children[i]);
 		}
+	}
+
+	private static void GetUniquePoints(array<Line> lines, out array<BoxedVector2> points)
+	{
+		foreach (l : lines)
+		{
+			bool v1Found = false;
+			bool v2Found = false;
+			foreach (point : points)
+			{
+				if (point.m_Value ~== l.v1.p)
+				{
+					v1Found = true;
+					continue;
+				}
+
+				if (point.m_Value ~== l.v2.p)
+				{
+					v2Found = true;
+					continue;
+				}
+			}
+			if (!v1Found) points.Push(BoxedVector2.FromVertex(l.v1));
+			if (!v2Found) points.Push(BoxedVector2.FromVertex(l.v2));
+		}
+	}
+
+	private static void FindEdgeIndices(array<BoxedVector2> points, array<Edge> edges, out array<int> pairs)
+	{
+		foreach (e : edges)
+		{
+			int i1 = points.Size();
+			int i2 = i1;
+			for (int i = 0; i < points.Size(); ++i)
+			{
+				if (points[i].m_Value ~== e.m_V1)
+				{
+					i1 = i;
+				}
+
+				if (points[i].m_Value ~== e.m_V2)
+				{
+					i2 = i;
+				}
+			}
+
+			if (i1 == points.Size() || i2 == points.Size()) ThrowAbortException("Points do not contain edge.");
+
+			pairs.Push(i1);
+			pairs.Push(i2);
+		}
+	}
+
+	private void PruneHoleTriangles(out array<SectorShape> holes)
+	{
+		for (int i = m_Triangles.Size() - 1; i >= 0; --i)
+		{
+			foreach (hole : holes)
+			{
+				if (Geometry.IsPointInPolygon(m_Triangles[i].GetCentroid(), hole.m_Lines))
+				{
+					m_Triangles.Delete(i);
+					break;
+				}
+			}
+		}
+	}
+
+	private void PruneOutOfBoundsTriangles(array<SectorShape> rootShapes)
+	{
+		for (int i = m_Triangles.Size() - 1; i >= 0; --i)
+		{
+			bool inBoundary = false;
+			foreach (shape : rootShapes)
+			{
+				if (Geometry.IsPointInPolygon(m_Triangles[i].GetCentroid(), shape.m_Lines))
+				{
+					inBoundary = true;
+					break;
+				}
+			}
+
+			if (inBoundary) continue;
+			m_Triangles.Delete(i);
+		}
+	}
+
+	static bool CorrectEdgeOrientation(out array<Edge> edges)
+	{
+		if (edges.Size() < 3) return false;
+
+		array<Edge> sorted;
+
+		Edge currentEdge = edges[0];
+
+		sorted.Push(currentEdge);
+		edges.Delete(0);
+
+		while (edges.Size() > 0)
+		{
+			bool connectionFound = false;
+			for (int i = edges.Size() - 1; i >= 0; --i)
+			{
+				if (abs(currentEdge.m_V2.x - edges[i].m_V1.x) < Geometry.EPSILON
+					&& abs(currentEdge.m_V2.y - edges[i].m_V1.y) < Geometry.EPSILON)
+				{
+					currentEdge = edges[i];
+					sorted.Push(currentEdge);
+					edges.Delete(i);
+					connectionFound = true;
+					continue;
+				}
+
+				if (abs(currentEdge.m_V2.x - edges[i].m_V2.x) < Geometry.EPSILON
+					&& abs(currentEdge.m_V2.y - edges[i].m_V2.y) < Geometry.EPSILON)
+				{
+					// Flip edge.
+					vector2 v2 = edges[i].m_V1;
+					edges[i].m_V1 = edges[i].m_V2;
+					edges[i].m_V2 = v2;
+
+					currentEdge = edges[i];
+					sorted.Push(currentEdge);
+					edges.Delete(i);
+					connectionFound = true;
+					continue;
+				}
+
+				if (abs(currentEdge.m_V1.x - edges[i].m_V1.x) < Geometry.EPSILON
+					&& abs(currentEdge.m_V1.y - edges[i].m_V1.y) < Geometry.EPSILON)
+				{
+					// Flip edge.
+					vector2 v2 = currentEdge.m_V1;
+					currentEdge.m_V1 = currentEdge.m_V2;
+					currentEdge.m_V2 = v2;
+
+					currentEdge = edges[i];
+					sorted.Push(currentEdge);
+					edges.Delete(i);
+					connectionFound = true;
+					continue;
+				}
+			}
+
+			if (!connectionFound) return false;
+		}
+
+		edges.Move(sorted);
+		return true;
 	}
 
 	private static void SortLinesHorizontally(out int recursionCount, out array<Line> lines, int left = -1, int right = -1)
@@ -282,11 +609,11 @@ class SectorTriangulation
 
 		while (left <= right)
 		{
-			while (lines[left].v1.p.x < pivot.v1.p.x || (lines[left].v1.p.x ~== pivot.v1.p.x && lines[left].v1.p.y < pivot.v1.p.y))
+			while (lines[left].v1.p.x < pivot.v1.p.x || (lines[left].v1.p.x == pivot.v1.p.x && lines[left].v1.p.y < pivot.v1.p.y))
 			{
 				++left;
 			}
-			while (lines[right].v1.p.x > pivot.v1.p.x || (lines[right].v1.p.x ~== pivot.v1.p.x && lines[right].v1.p.y > pivot.v1.p.y))
+			while (lines[right].v1.p.x > pivot.v1.p.x || (lines[right].v1.p.x == pivot.v1.p.x && lines[right].v1.p.y > pivot.v1.p.y))
 			{
 				--right;
 			}
@@ -306,182 +633,37 @@ class SectorTriangulation
 	}
 }
 
-class SectorPolygon : Polygon
-{
-	protected array<Line> m_InternalLines;
-
-	static SectorPolygon Create(array<PolygonPoint> points, array<Line> internalLines = null)
-	{
-		SectorPolygon poly = new("SectorPolygon");
-		int count = points.Size();
-		if (count < 3) ThrowAbortException("Point array has fewer than 3 points.");
-		if (points[0].Equals(points[count - 1])) points.Delete(count - 1);
-
-		for (int i = 0; i < count; ++i)
-		{
-			poly.m_Points.Push(points[i]);
-		}
-
-		if (internalLines) poly.m_InternalLines.Move(internalLines);
-		return poly;
-	}
-
-	static SectorPolygon FromSectorShape(SectorShape shape)
-	{
-		array<PolygonPoint> points;
-
-		for (int i = 0; i < shape.m_Points.Size(); ++i)
-		{
-			points.Push(PolygonPoint.FromVertex(shape.m_Points[i]));
-		}
-
-		SectorPolygon poly = SectorPolygon.Create(points);
-		if (shape.m_Inner) return poly;
-
-		for (int i = 0; i < shape.m_Children.Size(); ++i)
-		{
-			poly.AddHole(SectorPolygon.FromSectorShape(shape.m_Children[i]));
-		}
-
-		return poly;
-	}
-
-	void TakeInternalLines(out array<Line> lines)
-	{
-		array<Edge> edges;
-		for (int i = 0; i < m_Points.Size() - 1; ++i)
-		{
-			edges.Push(Edge.Create(m_Points[i].ToVector2(), m_Points[i + 1].ToVector2()));
-		}
-		edges.Push(Edge.Create(m_Points[m_Points.Size() - 1].ToVector2(), m_Points[0].ToVector2()));
-
-		for (int i = lines.Size(); i >= 0; --i)
-		{
-			if (Geometry.IsPointInPolygon(lines[i].v1.p, edges) && Geometry.IsPointInPolygon(lines[i].v2.p, edges))
-			{
-				m_InternalLines.Push(lines[i]);
-				lines.Delete(i);
-			}
-		}
-	}
-
-	override void Prepare(DTSweepContext tcx)
-	{
-		m_Triangles.Clear();
-		int count = m_Points.Size();
-
-		ShiftCollinearPoints();
-
-		// Outer constraints.
-		for (int i = 0; i < count - 1; ++i)
-		{
-			DTSweepContext.NewConstraint(m_Points[i], m_Points[i + 1]);
-		}
-		DTSweepContext.NewConstraint(m_Points[0], m_Points[count - 1]);
-		tcx.m_Points.Append(m_Points);
-
-		// Hole constraints.
-		foreach (hole : m_Holes)
-		{
-			int holeCount = hole.m_Points.Size();
-			for (int i = 0; i < holeCount - 1; ++i)
-			{
-				DTSweepContext.NewConstraint(hole.m_Points[i], hole.m_Points[i + 1]);
-			}
-			DTSweepContext.NewConstraint(hole.m_Points[0], hole.m_Points[holeCount - 1]);
-			tcx.m_Points.Append(hole.m_Points);
-		}
-
-		tcx.m_Points.Append(m_SteinerPoints);
-
-		// Internal line constraints.
-		array<TriangulationPoint> linePoints;
-		foreach (l : m_InternalLines)
-		{
-			// Ensure duplicate points aren't added.
-			TriangulationPoint v1, v2;
-			foreach (point : linePoints)
-			{
-				if (point.m_X ~== l.v1.p.x && point.m_Y ~== l.v1.p.y)
-				{
-					v1 = point;
-				}
-				else if (point.m_X ~== l.v2.p.x && point.m_Y ~== l.v2.p.y)
-				{
-					v2 = point;
-				}
-			}
-
-			if (!v1) v1 = TriangulationPoint.FromVertex(l.v1);
-			if (!v2) v2 = TriangulationPoint.FromVertex(l.v2);
-
-			DTSweepContext.NewConstraint(v1, v2);
-
-			linePoints.Push(v1);
-			linePoints.Push(v2);
-		}
-
-		// Shift collinear points.
-		for (int i = 0; i < linePoints.Size() - 2; ++i)
-		{
-			TriangulationPoint a = linePoints[i];
-			TriangulationPoint b = linePoints[(i + 1)];
-			TriangulationPoint c = linePoints[(i + 2)];
-
-			if (TriangulationUtil.Orient2d(a, b, c) == ORI_Collinear)
-			{
-				b.m_X += TriangulationUtil.EPSILON;
-				b.m_Y += TriangulationUtil.EPSILON;
-			}
-		}
-
-		// Ensure duplicate points aren't added.
-		foreach(linePoint : linePoints)
-		{
-			TriangulationPoint existingPoint;
-			foreach (point : tcx.m_Points)
-			{
-				if (point.Equals(linePoint))
-				{
-					existingPoint = point;
-					break;
-				}
-			}
-
-			if (existingPoint)
-			{
-				// Merge constraints between duplicates.
-				foreach (constraint : linePoint.m_Edges)
-				{
-					existingPoint.AddEdge(constraint);
-				}
-			}
-			else
-			{
-				tcx.m_Points.Push(linePoint);
-			}
-		}
-	}
-}
-
 class SectorShape
 {
-	array<Vertex> m_Points;
-	array<Line> m_Lines;
+	Sector m_Sector;
+	array<BoxedVector2> m_Points;
+	array<Edge> m_Lines;
 	array<SectorShape> m_Children;
 
 	bool m_Inner;
 
-	static SectorShape Create(out array<Vertex> vertices, out array<Line> lines)
+	private double m_Area;
+	private bool m_IsAreaSet;
+
+	static SectorShape Create(array<Vertex> vertices, array<Line> lines, Sector sec)
 	{
 		SectorShape node = new("SectorShape");
-		node.m_Points.Move(vertices);
-		node.m_Lines.Move(lines);
+
+		foreach (v : vertices)
+		{
+			node.m_Points.Push(BoxedVector2.FromVertex(v));
+		}
+
+		Edge.LinesToEdges(lines, node.m_Lines);
+
+		if (!SectorTriangulation.CorrectEdgeOrientation(node.m_Lines)) return null;
+
+		node.m_Sector = sec;
 		node.m_Inner = false;
 		return node;
 	}
 
-	bool TryAddChild(SectorShape other)
+	bool TryAddChild(SectorShape other, bool isInternal = false)
 	{
 		if (other.m_Points.Size() == 0) return false;
 
@@ -493,7 +675,7 @@ class SectorShape
 
 		if (other.IsInsideShape(self))
 		{
-			other.m_Inner = !m_Inner;
+			if (!isInternal) other.m_Inner = !m_Inner;
 			m_Children.Push(other);
 			return true;
 		}
@@ -518,44 +700,25 @@ class SectorShape
 			return true;
 		}
 
-		array<Edge> outerEdges;
-
-		// Brute force for now.
-		for (int i = 0; i < outer.m_Lines.Size(); ++i)
-		{
-			Line outerLine = outer.m_Lines[i];
-			outerEdges.Push(Edge.FromLine(outerLine));
-
-			for (int j = 0; j < m_Lines.Size(); ++j)
-			{
-				Line innerLine = m_Lines[j];
-
-				if (Geometry.IntersectionOf(
-					innerLine.v1.p,
-					innerLine.v2.p,
-					outerLine.v1.p,
-					outerLine.v2.p) != Vec2Util.Inf())
-				{
-					return false;
-				}
-			}
-		}
-
-		// If no lines intersect, check that at least one point is inside.
-		return Geometry.IsPointInPolygon(m_Points[0].p, outerEdges);
+		// Lines are guaranteed not to intersect, check that at least one point is inside.
+		return Geometry.IsPointInPolygon(m_Points[0].m_Value, outer.m_Lines);
 	}
 
-	vector2, vector2 GetBoundingBox()
+	double GetArea() const
 	{
-		array<BoxedVector2> points;
-
-		for (int i = 0; i < m_Points.Size(); ++i)
+		if (!m_IsAreaSet)
 		{
-			points.Push(BoxedVector2.FromVertex(m_Points[i]));
+			m_Area = Geometry.GetPolygonArea(m_Points);
+			m_IsAreaSet = true;
 		}
 
+		return m_Area;
+	}
+
+	vector2, vector2 GetBoundingBox() const
+	{
 		vector2 bl, tr;
-		[bl, tr] = Geometry.GetBoundingBox(points);
+		[bl, tr] = Geometry.GetBoundingBox(m_Points);
 		return bl, tr;
 	}
 }
@@ -563,25 +726,31 @@ class SectorShape
 /** Represents a single triangle in a SectorTriangulation. **/
 class SectorTriangle
 {
+	private Vertex[3] m_Vertices;
 	private vector2[2] m_BoundingBox;
-	private vector2[3] m_Points;
 	private Sector m_Sector;
 
 	static SectorTriangle Create(vector2 a, vector2 b, vector2 c, Sector sec)
 	{
 		SectorTriangle triangle = new("SectorTriangle");
-		triangle.m_Points[0] = a;
-		triangle.m_Points[1] = b;
-		triangle.m_Points[2] = c;
+		Vertex va = LevelUtil.FindVertex(a);
+		Vertex vb = LevelUtil.FindVertex(b);
+		Vertex vc = LevelUtil.FindVertex(c);
+
+		if (!va || !vb || !vc) ThrowAbortException("Missing triangle vertex.");
+
+		triangle.m_Vertices[0] = va;
+		triangle.m_Vertices[1] = vb;
+		triangle.m_Vertices[2] = vc;
 		triangle.m_Sector = sec;
 
 		// Calculate bounding box.
-		vector2 min = (triangle.m_Points[0].x, triangle.m_Points[0].y);
+		vector2 min = (triangle.m_Vertices[0].p.x, triangle.m_Vertices[0].p.y);
 		vector2 max = min;
 
-		for (int i = 1; i < triangle.m_Points.Size(); ++i)
+		for (int i = 1; i < triangle.m_Vertices.Size(); ++i)
 		{
-			vector2 point = triangle.m_Points[i];
+			vector2 point = triangle.m_Vertices[i].p;
 			if (point.x < min.x) min.x = point.x;
 			if (point.x > max.x) max.x = point.x;
 			if (point.y < min.y) min.y = point.y;
@@ -604,9 +773,15 @@ class SectorTriangle
 	}
 
 	/** Returns the point at the given index. **/
+	Vertex GetVertex(int index) const
+	{
+		return m_Vertices[index];
+	}
+
+	/** Returns the point at the given index. **/
 	vector2 GetPoint(int index) const
 	{
-		return m_Points[index];
+		return m_Vertices[index].p;
 	}
 
 	/** Returns the sector that corresponds to this SectorTriangle. **/
@@ -627,17 +802,17 @@ class SectorTriangle
 		double t = 0.5 * (x + y - q);
 		double u = 1 - 0.5 * (q + x + y);
 
-		vector2 a = m_Points[0];
-		vector2 b = m_Points[1];
-		vector2 c = m_Points[2];
+		vector2 a = m_Vertices[0].p;
+		vector2 b = m_Vertices[1].p;
+		vector2 c = m_Vertices[2].p;
 
 		return (s * a.x + t * b.x + u * c.x, s * a.y + t * b.y + u * c.y);
 	}
 
 	vector2 GetCentroid() const
 	{
-		double cx = (m_Points[0].x + m_Points[1].x + m_Points[2].x) / 3.0;
-		double cy = (m_Points[0].y + m_Points[1].y + m_Points[2].y) / 3.0;
+		double cx = (m_Vertices[0].p.x + m_Vertices[1].p.x + m_Vertices[2].p.x) / 3.0;
+		double cy = (m_Vertices[0].p.y + m_Vertices[1].p.y + m_Vertices[2].p.y) / 3.0;
 		return (cx, cy);
 	}
 
@@ -653,9 +828,9 @@ class SectorTriangle
 		if (!Geometry.IsPointInBounds(point, bl, tr)) return false;
 
 		array<Edge> boxedTriangle;
-		boxedTriangle.Push(Edge.Create(m_Points[0], m_Points[1]));
-		boxedTriangle.Push(Edge.Create(m_Points[1], m_Points[2]));
-		boxedTriangle.Push(Edge.Create(m_Points[2], m_Points[0]));
+		boxedTriangle.Push(Edge.Create(m_Vertices[0].p, m_Vertices[1].p));
+		boxedTriangle.Push(Edge.Create(m_Vertices[1].p, m_Vertices[2].p));
+		boxedTriangle.Push(Edge.Create(m_Vertices[2].p, m_Vertices[0].p));
 
 		return Geometry.IsPointInPolygon(point, boxedTriangle);
 	}

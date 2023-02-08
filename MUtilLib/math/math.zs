@@ -800,7 +800,7 @@ class MathVec3
 /** Contains several geometry-related utilities. **/
 class Geometry
 {
-	const GEOMETRY_EPSILON = 0.00001;
+	const EPSILON = 0.0001;
 	/**
 	 * Returns the bounding box of a shape, where the first value is the
 	 * bottom-left corner and the second value is the top-right corner.
@@ -859,21 +859,17 @@ class Geometry
 	**/
 	static bool IsPointOnLine(vector2 point, vector2 start, vector2 end)
 	{
-		double a = (end.y - start.y) / (end.x - end.x);
-		double b = start.y - a * start.x;
-		if (abs(point.y - (a * point.x + b)) < GEOMETRY_EPSILON)
-		{
-			array<BoxedVector2> linePoints;
-			linePoints.Push(BoxedVector2.Create(start));
-			linePoints.Push(BoxedVector2.Create(end));
+		if (point ~== start || point ~== end) return true;
 
-			vector2 boundsBottomLeft, boundsTopRight;
-			[boundsBottomLeft, boundsTopRight] = GetBoundingBox(linePoints);
-			
-			if (IsPointInBounds(point, boundsBottomLeft, boundsTopRight)) return true;
-		}
+		vector2 ab = end - start;
+		vector2 ac = point - start;
+		
+		if (!((ab, 0.0) cross (ac, 0.0) ~== Vec3Util.Zero())) return false;
 
-		return false;
+		double dbc = ab dot ac;
+		double dbb = ab dot ab;
+
+		return (0.0 < dbc && dbc < dbb);
 	}
 
 	/**
@@ -919,32 +915,34 @@ class Geometry
 
 		return inside;
 	}
-
 	/**
 	 * Returns whether or not the line defined by the given aStart and aEnd points
 	 * intersects with the line defined by the given bStart and bEnd points.
-	 *
-	 * NOTE:
-	 * 		Currently does not detect intersections between collinear segments.
 	**/
 	static bool LinesIntersect(vector2 aStart, vector2 aEnd, vector2 bStart, vector2 bEnd)
 	{
-		// Adapted from answer by @Gavin at StackOverflow (https://stackoverflow.com/a/1968345).
-		vector2 s1, s2;
-		s1.x = aEnd.x - aStart.x;
-		s1.y = aEnd.y - aStart.y;
-		s2.x = bEnd.x - bStart.x;
-		s2.y = bEnd.y - bStart.y;
+		// Adapted from answer by @Gareth Rees at StackOverflow (https://stackoverflow.com/a/565282).
+		vector2 mp = (bStart.x - aStart.x, bStart.y - aStart.y);
+		vector2 r = (aEnd.x - aStart.x, aEnd.y - aStart.y);
+		vector2 s = (bEnd.x - bStart.x, bEnd.y - bStart.y);
+ 
+		double mpxr = mp.x * r.y - mp.y * r.x;
+		double mpxs = mp.x * s.y - mp.y * s.x;
+		double rxs = r.x * s.y - r.y * s.x;
+ 
+		if (mpxr == 0.0)
+		{
+			return ((bStart.x - aStart.x < 0.0) != (bStart.x - aEnd.x < 0.0))
+				|| ((bStart.y - aStart.y < 0.0) != (bStart.y - aEnd.y < 0.0));
+		}
+ 
+		if (rxs == 0.0) return false;
+ 
+		double rxsr = 1.0 / rxs;
+		double t = mpxs * rxsr;
+		double u = mpxr * rxsr;
 
-		double denominator = -s2.x * s1.y + s1.x * s2.y;
-
-		if (denominator == 0.0) return false;
-
-		float s, t;
-		s = (-s1.y * (aStart.x - bStart.x) + s1.x * (aStart.y - bStart.y)) / denominator;
-		t = (s2.x * (aStart.y - bStart.y) - s2.y * (aStart.x - bStart.x)) / denominator;
-
-		return s > 0 && s < 1 && t > 0 && t < 1;
+		return (t >= 0.0) && (t <= 1.0) && (u >= 0.0) && (u <= 1.0);
 	}
 
 	/**
@@ -1025,18 +1023,6 @@ class Geometry
 		vector3 result = a cross b;
 		return result.z < 0.0;
 	}
-
-	// static bool IsPointInTriangle(vector2 point, vector2 a, vector2 b, vector2 c)
-	// {
-	// 	double denominator = ((b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y));
-	// 	if (denominator == 0.0) return false;
-
-	// 	double d = ((b.y - c.y) * (point.x - c.y) + (c.x - b.x) * (point.y - c.y)) / denominator;
-	// 	double e = ((c.y - a.y) * (point.x - c.x) + (a.x - c.x) * (point.y - c.y)) / denominator;
-	// 	double f = 1.0 - d - e;
-
-	// 	return 0.0 <= d && d <= 1.0 && 0.0 <= e && e <= 1.0 && 0.0 <= f && f <= 1.0;
-	// }
 
 	/** Returns the area of the given triangle. **/
 	static double GetTriangleArea(vector2 a, vector2 b, vector2 c)
@@ -1148,6 +1134,20 @@ class Edge
 		e.m_V1 = v1;
 		e.m_V2 = v2;
 		return e;
+	}
+
+	bool Equals(Edge other, bool matchDirection = true) const
+	{
+		if (matchDirection) return (m_V1 ~== other.m_V1 && m_V2 ~== other.m_V2);
+
+		return (m_V1 ~== other.m_V1 && m_V2 ~== other.m_V2) || (m_V2 ~== other.m_V1 && m_V1 ~== other.m_V2);
+	}
+
+	bool MatchesLine(Line l, bool matchDirection = false) const
+	{
+		if (matchDirection) return (l.v1.p ~== m_V1 && l.v2.p ~== m_V2);
+
+		return (l.v1.p ~== m_V1 && l.v2.p ~== m_V2) || (l.v2.p ~== m_V1 && l.v1.p ~== m_V2);
 	}
 
 	static Edge FromLine(Line l)
