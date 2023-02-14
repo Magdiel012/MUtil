@@ -1000,7 +1000,6 @@ class DTSweep
 			t1 = t1.NeighborCCWFrom(p1);
 		} while (p1 != first);
 
-
 		tcx.FinalizeTriangulation();
 	}
 
@@ -1625,19 +1624,13 @@ class DTSweepConstraint
 		DTSweepConstraint t = new("DTSweepConstraint");
 		t.m_P = p1;
 		t.m_Q = p2;
-		if (p1.m_Y > p2.m_Y)
+
+		if (p1.m_Y > p2.m_Y || (p1.m_Y == p2.m_Y && p1.m_X > p2.m_X))
 		{
 			t.m_Q = p1;
 			t.m_P = p2;
 		}
-		else if (p1.m_Y == p2.m_Y)
-		{
-			if (p1.m_X > p2.m_X)
-			{
-				t.m_Q = p1;
-				t.m_P = p2;
-			}
-		}
+
 		t.m_Q.AddEdge(t);
 
 		return t;
@@ -1646,7 +1639,7 @@ class DTSweepConstraint
 
 class DTSweepContext
 {
-	const ALPHA = 0.7;
+	const ALPHA = 0.3;
 
 	array<DelaunayTriangle> m_Triangles;
 	array<TriangulationPoint> m_Points;
@@ -1756,6 +1749,8 @@ class DTSweepContext
 		m_TriangulationMode = t.GetTriangulationMode();
 		t.Prepare(self);
 
+		TriangulationUtil.SortPointsVertically(m_Points);
+
 		float xmax, xmin;
 		float ymax, ymin;
 
@@ -1779,8 +1774,6 @@ class DTSweepContext
 
 		m_Head = p1;
 		m_Tail = p2;
-
-		TriangulationUtil.SortPointsVertically(m_Points);
 	}
 
 	void FinalizeTriangulation()
