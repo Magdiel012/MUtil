@@ -700,7 +700,7 @@ class MathVec3
 	deprecated("4.9.0", "Use Level.SphericalCoords() instead")
 	static vector2 ToYawAndPitch(vector3 vector)
 	{
-		return LevelLocals.SphericalCoords(Vec3Util.Zero(), vector.Unit(), absolute: true).xy;
+		return LevelLocals.SphericalCoords(Vec3Util.Zero(), vector.Unit(), absolute: true);
 	}
 
 	/**
