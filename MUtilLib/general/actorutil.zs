@@ -63,7 +63,7 @@ class ActorUtil
 	 * - newpos: the endpoint of the movement check.
 	 * - flags: the bit flags to be passed to the movement check. Identical to CheckMove
 	 *		flags.
-	 * - cw: an optional FCheckPosition struct to store information about the check.
+	 * - tm: an optional FCheckPosition struct to store information about the check.
 	**/
 	static play bool CheckWalk(Actor this, vector2 newpos, int flags = 0, FCheckPosition tm = null)
 	{
