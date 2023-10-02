@@ -297,7 +297,7 @@ class Vec3Util
 	/** Returns a direction vector from the given yaw and pitch angles. **/
 	static vector3 FromAngles(double yaw, double pitch, double length = 1)
 	{
-		return (length * cos(yaw), length * sin(yaw), length * -sin(pitch));
+		return (length * cos(yaw) * cos(pitch), length * sin(yaw) * cos(pitch), length * -sin(pitch));
 	}
 
 	/**
